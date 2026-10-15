@@ -1,0 +1,16 @@
+# dependencies
+node_modules/
+
+# env files: NEVER commit real keys
+.env
+.env*.local
+
+# build output
+.next/
+dist/
+.turbo/
+
+# OS / editor
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
