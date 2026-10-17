@@ -1,31 +1,19 @@
 {
   "name": "ai-engineer-2026",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "agent": "tsx --env-file=.env.local playground/agent-loop.ts",
-    "typecheck": "tsc --noEmit"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "devEngines": {
-    "packageManager": {
-      "name": "pnpm",
-      "version": "12.11.2",
-      "onFail": "download"
-    }
-  },
-  "packageManager": "pnpm@12.11.2",
+  "private": true,
   "type": "module",
-  "dependencies": {
-    "@anthropic-ai/sdk": "^0.133.0"
+  "packageManager": "pnpm@12.11.2",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "check-types": "turbo run check-types",
+    "agent": "pnpm --filter @repo/playground agent"
   },
   "devDependencies": {
-    "@types/node": "^26.6.5",
-    "tsx": "^4.23.15",
-    "typescript": "^7.0.2"
+    "turbo": "^2.11.8",
+    "typescript": "catalog:"
   }
 }

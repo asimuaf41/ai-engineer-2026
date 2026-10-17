@@ -1,0 +1,21 @@
+{
+  "name": "@repo/playground",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "agent": "tsx --env-file=.env.local audit-samples.ts",
+    "agent:day1": "tsx --env-file=.env.local agent-loop.ts",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "catalog:",
+    "@repo/ai": "workspace:*"
+  },
+  "devDependencies": {
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "catalog:",
+    "tsx": "^4.23.15",
+    "typescript": "catalog:"
+  }
+}
