@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+/* @repo/ui ships its components as raw .tsx source (no build step), so Tailwind's
+   class scanner never sees them unless told to look here explicitly — without this,
+   utility classes used only inside @repo/ui would be purged from this app's CSS. */
+@source "../../../../packages/ui/src";

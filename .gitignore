@@ -14,3 +14,7 @@ dist/
 .DS_Store
 .vscode/*
 !.vscode/extensions.json
+
+# TypeScript / Next.js build artifacts
+next-env.d.ts
+*.tsbuildinfo

@@ -28,7 +28,7 @@ async function readSample(filename: string): Promise<string> {
   const fullPath = resolve(SAMPLES_DIR, filename);
   const rel = relative(SAMPLES_DIR, fullPath);
   if (rel.startsWith("..") || isAbsolute(rel)) {
-    throw new Error(`"${filename}" resolves outside playground/samples.`);
+    throw new Error(`"${filename}" resolves outside samples/.`);
   }
   return readFile(fullPath, "utf8");
 }

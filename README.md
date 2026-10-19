@@ -16,8 +16,35 @@ Four products, built one feature per day:
 - [Project brief](docs/project-brief.md)
 - [Decisions](docs/decisions/)
 
+## Layout
+
+```
+apps/
+  shipwright/           # @repo/shipwright — marketing site, localhost:3000
+  lab/                  # @repo/lab — security audit agent demo, localhost:3001
+packages/
+  ai/                   # @repo/ai — Claude client, models, audit loop
+  ui/                   # @repo/ui — shared Button/Card components
+  typescript-config/    # @repo/typescript-config — shared tsconfig bases
+playground/             # @repo/playground — scratch scripts, not product code
+docs/                   # project brief + architecture decision records
+```
+
+## Run locally
+
+```bash
+pnpm install
+cp apps/shipwright/.env.example apps/shipwright/.env.local  # add NEXT_PUBLIC_APP_URL
+cp apps/lab/.env.example apps/lab/.env.local                # add ANTHROPIC_API_KEY
+pnpm dev
+```
+
+- Shipwright: http://localhost:3000
+- Lab: http://localhost:3001
+
 ## Run the playground
 
-pnpm install
-cp .env.example .env.local # add your ANTHROPIC_API_KEY
+```bash
+cp playground/.env.example playground/.env.local  # add ANTHROPIC_API_KEY
 pnpm agent
+```
