@@ -18,3 +18,7 @@ dist/
 # TypeScript / Next.js build artifacts
 next-env.d.ts
 *.tsbuildinfo
+
+# local agent overrides
+CLAUDE.local.md
+.claude/settings.local.json
