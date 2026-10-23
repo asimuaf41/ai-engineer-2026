@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { Button } from "@repo/ui/button";
-import { Card, CardTitle } from "@repo/ui/card";
+import { Button } from "@repo/ui/components/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@repo/ui/components/card";
 import type { AuditResult } from "@repo/ai/audit";
 
 const DEFAULT_FILENAME = "supabase.ts";
@@ -19,6 +19,9 @@ export async function getAllUsers() {
   return data;
 }
 `;
+
+const FIELD_CLASS =
+  "rounded-lg border border-input bg-background px-3 py-2 font-mono text-sm text-foreground outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 type State =
   | { status: "idle" }
@@ -59,7 +62,7 @@ export function AuditForm() {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
       <div className="flex flex-col gap-2">
-        <label htmlFor="filename" className="text-sm font-medium text-white/70">
+        <label htmlFor="filename" className="text-sm font-medium text-muted-foreground">
           File name
         </label>
         <input
@@ -67,12 +70,12 @@ export function AuditForm() {
           name="filename"
           value={filename}
           onChange={(event) => setFilename(event.target.value)}
-          className="rounded-lg border border-white/15 bg-white/[0.03] px-3 py-2 font-mono text-sm text-white outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+          className={FIELD_CLASS}
         />
       </div>
 
       <div className="flex flex-col gap-2">
-        <label htmlFor="code" className="text-sm font-medium text-white/70">
+        <label htmlFor="code" className="text-sm font-medium text-muted-foreground">
           Code
         </label>
         <textarea
@@ -81,7 +84,7 @@ export function AuditForm() {
           value={code}
           onChange={(event) => setCode(event.target.value)}
           rows={14}
-          className="rounded-lg border border-white/15 bg-white/[0.03] px-3 py-2 font-mono text-sm text-white outline-none focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+          className={FIELD_CLASS}
         />
       </div>
 
@@ -91,26 +94,34 @@ export function AuditForm() {
 
       {state.status === "loading" && (
         <Card className="animate-pulse">
-          <CardTitle>Auditing…</CardTitle>
-          <p className="mt-2 text-sm text-white/70">Claude is reading the file and checking for problems.</p>
+          <CardHeader>
+            <CardTitle>Auditing…</CardTitle>
+            <CardDescription>Claude is reading the file and checking for problems.</CardDescription>
+          </CardHeader>
         </Card>
       )}
 
       {state.status === "error" && (
-        <Card role="alert" className="border-red-500/50">
-          <CardTitle>Something went wrong</CardTitle>
-          <p className="mt-2 text-sm text-red-300">{state.message}</p>
+        <Card role="alert" className="ring-destructive/50">
+          <CardHeader>
+            <CardTitle>Something went wrong</CardTitle>
+            <CardDescription className="text-destructive">{state.message}</CardDescription>
+          </CardHeader>
         </Card>
       )}
 
       {state.status === "done" && (
         <Card>
-          <CardTitle>Findings</CardTitle>
-          <p className="mt-2 text-sm text-white/50">
-            {state.result.turns} turns · tools: {state.result.toolCalls.join(", ") || "none"} ·{" "}
-            {state.result.usage.inputTokens} in / {state.result.usage.outputTokens} out tokens
-          </p>
-          <p className="mt-4 whitespace-pre-wrap text-sm text-white/90">{state.result.report}</p>
+          <CardHeader>
+            <CardTitle>Findings</CardTitle>
+            <CardDescription>
+              {state.result.turns} turns · tools: {state.result.toolCalls.join(", ") || "none"} ·{" "}
+              {state.result.usage.inputTokens} in / {state.result.usage.outputTokens} out tokens
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <p className="whitespace-pre-wrap text-sm text-foreground">{state.result.report}</p>
+          </CardContent>
         </Card>
       )}
     </form>
