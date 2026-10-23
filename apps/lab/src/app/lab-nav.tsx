@@ -1,6 +1,7 @@
 "use client";
 
-import { cn } from "@repo/ui/cn";
+import { ThemeToggle } from "@repo/ui/components/theme-toggle";
+import { cn } from "@repo/ui/lib/utils";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { EXPERIMENTS } from "../experiments";
@@ -10,8 +11,8 @@ export function LabNav() {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Experiments" className="border-b border-white/10">
-      <ul className="flex gap-1 overflow-x-auto p-2">
+    <nav aria-label="Experiments" className="flex items-center gap-2 border-b p-2">
+      <ul className="flex min-w-0 flex-1 gap-1 overflow-x-auto">
         {EXPERIMENTS.map((experiment) => {
           const active =
             pathname === experiment.href ||
@@ -23,8 +24,8 @@ export function LabNav() {
                 href={experiment.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "block rounded-md px-3 py-1.5 text-sm whitespace-nowrap text-zinc-300 hover:bg-white/5 hover:text-zinc-100",
-                  active && "bg-white/10 text-zinc-100",
+                  "block rounded-md px-3 py-1.5 text-sm whitespace-nowrap text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                  active && "bg-accent text-accent-foreground",
                 )}
               >
                 {experiment.id} {experiment.title}
@@ -33,6 +34,7 @@ export function LabNav() {
           );
         })}
       </ul>
+      <ThemeToggle />
     </nav>
   );
 }

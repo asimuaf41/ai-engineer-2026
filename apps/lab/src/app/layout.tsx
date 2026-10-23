@@ -1,3 +1,6 @@
+import { ThemeProvider } from "@repo/ui/components/theme-provider";
+import { GeistMono } from "geist/font/mono";
+import { GeistSans } from "geist/font/sans";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import "./globals.css";
@@ -9,10 +12,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <body className="min-h-dvh bg-zinc-950 text-zinc-100 antialiased">
-        <LabNav />
-        {children}
+    // suppressHydrationWarning: next-themes adds the "dark" class to <html> before React loads.
+    <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`} suppressHydrationWarning>
+      <body className="min-h-dvh">
+        <ThemeProvider>
+          <LabNav />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
