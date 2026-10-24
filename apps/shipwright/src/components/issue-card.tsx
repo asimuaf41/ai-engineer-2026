@@ -38,13 +38,13 @@ const SEVERITY_LABEL: Record<Severity, string> = {
 };
 
 // Severity is shown by color AND word (the strip + the badge text), never color alone.
-export function IssueCard({ issue }: { issue: Issue }) {
+export function IssueCard({ issue, onFix }: { issue: Issue; onFix?: () => void }) {
   const fixed = issue.status === "fixed";
 
   return (
     <Card
       className={cn(
-        "relative overflow-hidden before:absolute before:inset-y-0 before:left-0 before:w-1 before:content-['']",
+        "relative h-full overflow-hidden before:absolute before:inset-y-0 before:left-0 before:w-1 before:content-['']",
         STRIP[issue.severity],
       )}
     >
@@ -62,8 +62,8 @@ export function IssueCard({ issue }: { issue: Issue }) {
       <CardContent>
         <p className="text-muted-foreground">{issue.summary}</p>
       </CardContent>
-      <CardFooter className="gap-2">
-        <Button size="sm" disabled={fixed}>
+      <CardFooter className="mt-auto gap-2">
+        <Button size="sm" disabled={fixed} onClick={onFix}>
           {fixed ? "PR merged" : "Open fix PR"}
         </Button>
         <Button size="sm" variant="ghost">

@@ -12,3 +12,5 @@ paths: ["apps/**"]
 - Never send raw errors or stack traces to the browser.
 - Use `@repo/ui` components first; combine classes with `cn()`.
 - Every UI has loading, error (`role="alert"`) and empty states.
+- Never wrap the hero headline (LCP) in `Reveal`. Server Components may pass only serializable
+  props (no functions) to motion components.

@@ -8,6 +8,9 @@ import path from "node:path";
 const CODE_FILE = /\.(ts|tsx|mts|js|mjs)$/;
 const MODEL_STRING = /["'`]claude-[a-z0-9.-]+["'`]/;
 const PUBLIC_SECRET = /NEXT_PUBLIC_\w*(SECRET|SERVICE_ROLE|PRIVATE|API_KEY|TOKEN)\w*/;
+const APP_TS_FILE = /^(apps|packages)\/.+\.tsx?$/;
+const OLD_MOTION_IMPORT = /from\s+["']framer-motion(?:\/[^"']*)?["']/;
+const STAGGER_CHILDREN = /\bstaggerChildren\s*:/;
 const CATALOG_ONLY = ["next", "react", "react-dom", "typescript", "zod", "@anthropic-ai/sdk", "tailwindcss"];
 
 let input;
@@ -53,6 +56,17 @@ if (path.posix.basename(relative) === "package.json" && relative !== "package.js
     }
   } catch {
     problems.push("package.json is not valid JSON. Fix the syntax.");
+  }
+}
+
+// Rule 5: Motion. The library was renamed from framer-motion to motion, and staggerChildren
+// is deprecated, so catch both in app and package source before they spread.
+if (APP_TS_FILE.test(relative)) {
+  if (OLD_MOTION_IMPORT.test(text)) {
+    problems.push('Import from "motion/react" (or "motion/react-client" in Server Components), not "framer-motion". The package was renamed; we only install motion.');
+  }
+  if (STAGGER_CHILDREN.test(text)) {
+    problems.push('staggerChildren is deprecated. Use delayChildren: stagger(0.06) with stagger imported from "motion/react".');
   }
 }
 

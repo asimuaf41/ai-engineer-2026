@@ -34,6 +34,9 @@ Course and portfolio monorepo of Asim Ali — read by Claude Code, Cursor and an
 - Env vars only via each app's `src/env.ts`; secret modules start with `import "server-only"`.
 - Every UI has loading, error and empty states, and every input has a label.
 - Use `import type` for type-only imports. No `any`, no `@ts-ignore`.
+- Animations: Motion (import from `motion/react`; `motion/react-client` in Server Components).
+  Use `@repo/ui/motion` components and tokens from `@repo/ui/lib/motion`. Page transitions use
+  React `<ViewTransition>`, not `AnimatePresence`.
 
 ## Safety
 

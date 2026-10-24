@@ -4,12 +4,14 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "./transitions.css";
 
 /* @repo/ui ships its components as raw .tsx source (no build step), so Tailwind's
    class scanner never sees them unless told to look here explicitly — without this,
    utility classes used only inside @repo/ui would be purged from the apps' CSS. */
 @source "../components";
 @source "../lib";
+@source "../motion";
 
 @custom-variant dark (&:is(.dark *));
 
