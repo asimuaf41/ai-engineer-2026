@@ -3,14 +3,20 @@ import Link from "next/link";
 
 const NAV_LINKS = [
   { href: "/#how", label: "How it works" },
+  { href: "/demo", label: "Live demo" },
   { href: "/design", label: "Design system" },
 ];
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-md">
+    // viewTransitionName gives the header its own snapshot during page transitions, so it stays still
+    // while the page content animates (see ::view-transition-*(site-header) in transitions.css).
+    <header
+      style={{ viewTransitionName: "site-header" }}
+      className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-md"
+    >
       <div className="container-page flex h-14 items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 font-semibold tracking-tight">
+        <Link href="/" transitionTypes={["nav-back"]} className="flex items-center gap-2 font-semibold tracking-tight">
           <span aria-hidden className="size-2 rounded-full bg-brand" />
           Shipwright
         </Link>
