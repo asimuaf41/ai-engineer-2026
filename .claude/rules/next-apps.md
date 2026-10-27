@@ -14,3 +14,6 @@ paths: ["apps/**"]
 - Every UI has loading, error (`role="alert"`) and empty states.
 - Never wrap the hero headline (LCP) in `Reveal`. Server Components may pass only serializable
   props (no functions) to motion components.
+- Sticky needs a tall parent (don't add `items-start` to its grid) and no `overflow` hidden/auto
+  ancestor. Phones get a plain stack, no sticky columns.
+- Grids that hold code or long text use `grid-cols-1` (`minmax(0,1fr)`), not bare `grid`.

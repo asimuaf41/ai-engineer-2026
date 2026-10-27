@@ -55,6 +55,34 @@ Decision and reasons: [ADR 0004](decisions/0004-motion-and-page-transitions.md).
 7. **Wrapping the hero headline in `Reveal`.** Starting at opacity 0 delays LCP.
 8. **Hardcoded durations and curves.** Put them in `lib/motion.ts` (and keep `transitions.css` in sync).
 
+## Scroll
+
+Decision and reasons: [ADR 0005](decisions/0005-scroll-storytelling.md). Live example: the "How it works" story on `/`.
+
+**The 4 tools**
+- `useScroll`: gives `scrollYProgress`, a 0→1 MotionValue for the page or for one element (`target`).
+- `useTransform`: maps that progress to a value (rotate, scale, offset) you bind with `style`.
+- `useMotionValueEvent`: runs code on every change; use it only to set state when something discrete changes (the active step).
+- CSS `animation-timeline`: zero JavaScript, but not in stable Firefox. Decoration only.
+
+**Reading `offset`:** it is two moments, `[when progress is 0, when progress is 1]`, each written as
+`"<point on the element> <point on the screen>"`. `["start center", "end center"]` means: 0 when the top of the
+element reaches the middle of the screen, 1 when its bottom does.
+
+**2 sticky rules**
+1. The sticky column's parent must be tall: grid items stretch, so never add `items-start`.
+2. No ancestor may have `overflow` hidden or auto (use `overflow-x-clip`), and phones get a plain stack.
+
+**8 AI scroll mistakes to catch** (reconstructed from the repo rules and today's work)
+1. **`addEventListener("scroll")`.** Use `useScroll`; a hook blocks the listener.
+2. **`useState` for scroll progress.** It re-renders every frame; bind a MotionValue with `style`.
+3. **`overflow-x-hidden` on a wrapper.** It breaks `position: sticky`; use `overflow-x-clip`.
+4. **`items-start` on the sticky grid.** The column is only as tall as its content, so sticky has no room.
+5. **A bare `grid` around code.** Long lines widen the column on phones; use `grid-cols-1`.
+6. **Sticky on phones.** Use the sticky layout from `lg` up and a plain stack below.
+7. **Parallax or tilt without `useReducedMotion()`.** Anything moved by `style` needs the check.
+8. **Hiding the hero headline or forgetting `scroll-mt-*`.** Animate the product shot, not the `h1`; offset anchors under the sticky header.
+
 ## AI UX
 
 AI answers take seconds, so the UI must show it heard you, what it is doing, and how to stop it.

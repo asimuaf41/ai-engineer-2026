@@ -11,6 +11,8 @@ const PUBLIC_SECRET = /NEXT_PUBLIC_\w*(SECRET|SERVICE_ROLE|PRIVATE|API_KEY|TOKEN
 const APP_TS_FILE = /^(apps|packages)\/.+\.tsx?$/;
 const OLD_MOTION_IMPORT = /from\s+["']framer-motion(?:\/[^"']*)?["']/;
 const STAGGER_CHILDREN = /\bstaggerChildren\s*:/;
+const SCROLL_LISTENER = /addEventListener\(\s*["']scroll["']/;
+const OVERFLOW_X_HIDDEN = /\boverflow-x-hidden\b/;
 const UNSAFE_HTML = /dangerouslySetInnerHTML/;
 const OLD_AI_SDK = /\.toUIMessageStreamResponse\(|\bstepCountIs\(|\bmaxSteps\b|\bexperimental_throttle\b/;
 const STREAM_TEXT = /\bstreamText\(/;
@@ -74,6 +76,17 @@ if (APP_TS_FILE.test(relative)) {
   }
   if (STAGGER_CHILDREN.test(text)) {
     problems.push('staggerChildren is deprecated. Use delayChildren: stagger(0.06) with stagger imported from "motion/react".');
+  }
+}
+
+// Rule 6: Scroll. Scroll listeners re-render on every event, and overflow-x-hidden quietly
+// breaks position: sticky, so catch both in app and package source.
+if (APP_TS_FILE.test(relative)) {
+  if (SCROLL_LISTENER.test(text)) {
+    problems.push('Don\'t listen to scroll events. Use useScroll() from "motion/react" (MotionValues update the DOM without re-rendering) or CSS scroll-driven animations.');
+  }
+  if (OVERFLOW_X_HIDDEN.test(text)) {
+    problems.push("overflow-x-hidden turns the element into a scroll container and breaks position: sticky inside it. Use overflow-x-clip (cuts the overflow, keeps sticky working).");
   }
 }
 
