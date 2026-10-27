@@ -4,7 +4,8 @@ packages:
   - playground
 
 allowBuilds:
-  esbuild: set this to true or false
+  # esbuild only comes in through tsx (playground). Its install script is an optional speed-up, so skip it.
+  esbuild: false
 
 catalog:
   next: 16.4.2
