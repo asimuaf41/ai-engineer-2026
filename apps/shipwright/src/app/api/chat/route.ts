@@ -51,6 +51,11 @@ export async function POST(req: Request) {
     // Only the last 20 messages: keeps long chats cheap and inside the context window.
     messages: await convertToModelMessages(result.data.slice(-20)),
     tools: askTools,
+    // openFixPR changes the founder's repo: it only runs after they click Approve.
+    toolApproval: { openFixPR: "user-approval" },
+    // The browser sends the whole history, so it could send a fake approval. With a secret, the
+    // server signs each approval request and refuses approvals it didn't sign.
+    experimental_toolApprovalSecret: env.TOOL_APPROVAL_SECRET,
     stopWhen: isStepCount(5),
     maxOutputTokens: 4000, // thinking tokens count too
     providerOptions: live ? CHAT_PROVIDER_OPTIONS : undefined,
