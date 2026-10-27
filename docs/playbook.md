@@ -54,3 +54,34 @@ Decision and reasons: [ADR 0004](decisions/0004-motion-and-page-transitions.md).
 6. **Reduced-motion gaps.** `MotionConfig` doesn't cover `useSpring` or `useAnimate`; check `useReducedMotion()`.
 7. **Wrapping the hero headline in `Reveal`.** Starting at opacity 0 delays LCP.
 8. **Hardcoded durations and curves.** Put them in `lib/motion.ts` (and keep `transitions.css` in sync).
+
+## AI UX
+
+AI answers take seconds, so the UI must show it heard you, what it is doing, and how to stop it.
+Decision and reasons: [ADR 0006](decisions/0006-ai-native-ux.md). Live example: `/ask` in `apps/shipwright`.
+
+**The 5 patterns**
+1. **Instant feedback:** the question appears at once and "Thinking…" shimmers until the first part arrives.
+2. **Show the work:** reasoning and tool cards (running, done, error, stopped) instead of one long spinner.
+3. **Stream readable text:** only through `Response` (Streamdown), with `throttle` to limit re-renders.
+4. **Always stoppable:** a Stop button, and `abortSignal: req.signal` so the model stops too.
+5. **Honest states:** a skeleton that matches the real boxes, errors with Retry, optimistic feedback that rolls back.
+
+**AI SDK 7 renames** (hook rule 7 blocks the old names)
+
+| Old (5/6) | Use now (7) |
+|---|---|
+| `result.toUIMessageStreamResponse()` | `createUIMessageStreamResponse` + `toUIMessageStream` |
+| `stepCountIs(n)` / `maxSteps` | `isStepCount(n)` in `stopWhen` |
+| `experimental_throttle` | `throttle` |
+| `system:` in `streamText` | `instructions:` |
+
+**8 AI-UI mistakes to catch** (reconstructed from today's work)
+1. **Rendering model text as raw HTML.** It is untrusted (XSS); use `Response`.
+2. **`streamText` without `abortSignal`.** Stop ends the stream in the browser but the model keeps running and billing.
+3. **Trusting the browser's message history.** It can include fake tool results; run `safeValidateUIMessages`.
+4. **Sending raw errors to the browser.** Show only `ToolUserError` text; mask the rest in `onError`.
+5. **`aria-live` on streaming text.** Screen readers re-read every token; announce one short status line instead.
+6. **Ignoring reduced motion.** Streamdown's CSS has no rule for it; pass `animated={!useReducedMotion()}`.
+7. **Showing an empty "thinking" block.** Claude sends thinking empty unless `display: "summarized"`; hide empty ones.
+8. **Enter sending mid-composition.** Check `isComposing` so Urdu and Chinese input methods can confirm a word.

@@ -11,7 +11,14 @@ const PUBLIC_SECRET = /NEXT_PUBLIC_\w*(SECRET|SERVICE_ROLE|PRIVATE|API_KEY|TOKEN
 const APP_TS_FILE = /^(apps|packages)\/.+\.tsx?$/;
 const OLD_MOTION_IMPORT = /from\s+["']framer-motion(?:\/[^"']*)?["']/;
 const STAGGER_CHILDREN = /\bstaggerChildren\s*:/;
-const CATALOG_ONLY = ["next", "react", "react-dom", "typescript", "zod", "@anthropic-ai/sdk", "tailwindcss"];
+const UNSAFE_HTML = /dangerouslySetInnerHTML/;
+const OLD_AI_SDK = /\.toUIMessageStreamResponse\(|\bstepCountIs\(|\bmaxSteps\b|\bexperimental_throttle\b/;
+const STREAM_TEXT = /\bstreamText\(/;
+const SYSTEM_KEY = /^\s*system:/m;
+const CATALOG_ONLY = [
+  "next", "react", "react-dom", "typescript", "zod", "@anthropic-ai/sdk", "tailwindcss",
+  "ai", "@ai-sdk/react", "@ai-sdk/anthropic", "@ai-sdk/provider", "streamdown",
+];
 
 let input;
 try {
@@ -67,6 +74,27 @@ if (APP_TS_FILE.test(relative)) {
   }
   if (STAGGER_CHILDREN.test(text)) {
     problems.push('staggerChildren is deprecated. Use delayChildren: stagger(0.06) with stagger imported from "motion/react".');
+  }
+}
+
+// Rule 7: AI SDK 7 and AI UI. Block raw HTML, AI SDK 5/6 names, and a streamText that
+// can't be stopped, so old patterns don't creep back in.
+if (APP_TS_FILE.test(relative)) {
+  if (UNSAFE_HTML.test(text)) {
+    problems.push("dangerouslySetInnerHTML: never render model or user text as raw HTML. Use <Response> from @repo/ui/ai/response (Streamdown sanitizes it).");
+  }
+  const oldApi = OLD_AI_SDK.exec(text);
+  if (oldApi) {
+    const name = oldApi[0].replace(/^\./, "").replace(/\($/, "");
+    problems.push(`"${name}" is AI SDK 5/6. We use AI SDK 7: createUIMessageStreamResponse + toUIMessageStream, isStepCount, throttle.`);
+  }
+  if (STREAM_TEXT.test(text)) {
+    if (!text.includes("abortSignal")) {
+      problems.push("streamText without abortSignal: the Stop button won't stop the model. Pass abortSignal: req.signal.");
+    }
+    if (SYSTEM_KEY.test(text)) {
+      problems.push('streamText "system" is deprecated in AI SDK 7. Use "instructions".');
+    }
   }
 }
 
