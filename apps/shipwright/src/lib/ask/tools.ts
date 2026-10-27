@@ -85,6 +85,17 @@ const runProof = tool({
   },
 });
 
-export const askTools = { listIssues, searchCode, runProof };
+// It changes the founder's repo, so the route asks the user first.
+const openFixPR = tool({
+  description: "Open a GitHub pull request that fixes one finding. Needs the founder's approval.",
+  inputSchema: z.object({ issueId: z.string() }),
+  execute: async ({ issueId }) => {
+    // Day 15 makes a real branch, commit and PR through the GitHub App.
+    await wait(1500);
+    return { issueId, number: 42, url: "https://github.com/acme/checkout-app/pull/42" };
+  },
+});
+
+export const askTools = { listIssues, searchCode, runProof, openFixPR };
 
 export type AskMessage = UIMessage<never, never, InferUITools<typeof askTools>>;

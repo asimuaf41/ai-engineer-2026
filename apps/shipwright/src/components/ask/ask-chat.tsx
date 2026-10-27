@@ -3,6 +3,7 @@
 // The Ask Shipwright chat. useChat streams from /api/chat; this file only decides how each
 // message part looks: text, reasoning, and tool cards. All AI pieces come from @repo/ui/ai.
 import { useChat } from "@ai-sdk/react";
+import { lastAssistantMessageIsCompleteWithApprovalResponses } from "ai";
 import { Message, MessageContent } from "@repo/ui/ai/message";
 import { PromptInput } from "@repo/ui/ai/prompt-input";
 import { Reasoning } from "@repo/ui/ai/reasoning";
@@ -13,27 +14,39 @@ import type { ToolStatus } from "@repo/ui/ai/tool-card";
 import { Button } from "@repo/ui/components/button";
 import { Stagger, StaggerItem } from "@repo/ui/motion/stagger";
 import { useReducedMotion } from "motion/react";
-import { FileSearchIcon, ListChecksIcon, ShieldAlertIcon } from "lucide-react";
+import { CheckIcon, FileSearchIcon, GitPullRequestIcon, ListChecksIcon, ShieldAlertIcon, XIcon } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useEffect, useRef } from "react";
 import type { Ref } from "react";
 import { Feedback } from "@/components/ask/feedback";
-import { CodeMatches, IssueList, ProofResult } from "@/components/ask/tool-results";
+import { CodeMatches, IssueList, ProofResult, PullRequestResult } from "@/components/ask/tool-results";
 import type { AskMessage } from "@/lib/ask/tools";
 
 type Part = AskMessage["parts"][number];
 type ToolPart = Extract<Part, { type: `tool-${string}` }>;
+type Approve = (response: { id: string; approved: boolean }) => void;
 
-const SUGGESTIONS = ["Is my app safe to launch?", "What should I fix first?", "Did any secrets leak?"];
+const SUGGESTIONS = [
+  "Is my app safe to launch?",
+  "What should I fix first?",
+  "Did any secrets leak?",
+  "Fix it: open a pull request",
+];
 
 const TOOL_UI = {
   "tool-listIssues": { icon: ListChecksIcon, running: "Checking the issue list", done: "Checked the issue list" },
   "tool-searchCode": { icon: FileSearchIcon, running: "Searching the code", done: "Searched the code" },
   "tool-runProof": { icon: ShieldAlertIcon, running: "Running a live check", done: "Ran a live check" },
+  "tool-openFixPR": { icon: GitPullRequestIcon, running: "Opening a fix pull request", done: "Opened a fix pull request" },
 } satisfies Record<ToolPart["type"], { icon: LucideIcon; running: string; done: string }>;
 
 function toolStatus(state: ToolPart["state"], active: boolean): ToolStatus {
   switch (state) {
+    case "approval-requested":
+      // The stream has ended on purpose: it waits for the user's click.
+      return "waiting";
+    case "approval-responded":
+      return "running";
     case "output-available":
       return "done";
     case "output-error":
@@ -53,23 +66,46 @@ function toolDetail(part: ToolPart): string | undefined {
     case "tool-searchCode":
       return part.input?.query ? `“${part.input.query}”` : undefined;
     case "tool-runProof":
+    case "tool-openFixPR":
       return part.input?.issueId;
   }
 }
 
-function AskToolCard({ part, active }: { part: ToolPart; active: boolean }) {
+function toolTitle(part: ToolPart, status: ToolStatus): string {
   const ui = TOOL_UI[part.type];
+  if (part.state === "output-denied") return "You said no, nothing was changed";
+  if (status === "waiting") return "Open a fix pull request?";
+  if (status === "done") return ui.done;
+  if (status === "running") return ui.running;
+  return `${ui.running} (${status === "error" ? "failed" : "stopped"})`;
+}
+
+function AskToolCard({ part, active, onApprove }: { part: ToolPart; active: boolean; onApprove: Approve }) {
   const status = toolStatus(part.state, active);
-  const title = status === "done" ? ui.done : status === "running" ? ui.running : `${ui.running} (${status === "error" ? "failed" : "stopped"})`;
 
   return (
     <ToolCard
       status={status}
-      title={title}
-      icon={ui.icon}
+      title={toolTitle(part, status)}
+      icon={TOOL_UI[part.type].icon}
       detail={toolDetail(part)}
       errorText={part.state === "output-error" ? part.errorText : undefined}
     >
+      {part.state === "approval-requested" && part.type === "tool-openFixPR" && !part.approval.isAutomatic && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-muted-foreground">Shipwright will push a branch and open a PR. Nothing is merged without you.</p>
+          <div className="flex gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={() => onApprove({ id: part.approval.id, approved: false })}>
+              <XIcon aria-hidden />
+              Deny
+            </Button>
+            <Button type="button" size="sm" onClick={() => onApprove({ id: part.approval.id, approved: true })}>
+              <CheckIcon aria-hidden />
+              Approve
+            </Button>
+          </div>
+        </div>
+      )}
       {part.state === "output-available" && <ToolResult part={part} />}
     </ToolCard>
   );
@@ -83,16 +119,20 @@ function ToolResult({ part }: { part: Extract<ToolPart, { state: "output-availab
       return <CodeMatches matches={part.output} />;
     case "tool-runProof":
       return <ProofResult proof={part.output} />;
+    case "tool-openFixPR":
+      return <PullRequestResult pr={part.output} />;
   }
 }
 
 function ChatMessage({
   message,
   isStreaming,
+  onApprove,
   ref,
 }: {
   message: AskMessage;
   isStreaming: boolean;
+  onApprove: Approve;
   ref?: Ref<HTMLDivElement>;
 }) {
   const from = message.role;
@@ -116,7 +156,7 @@ function ChatMessage({
           if (part.type === "reasoning") {
             return <Reasoning key={key} text={part.text} isStreaming={isStreaming && part.state === "streaming"} />;
           }
-          if (part.type in TOOL_UI) return <AskToolCard key={key} part={part as ToolPart} active={isStreaming} />;
+          if (part.type in TOOL_UI) return <AskToolCard key={key} part={part as ToolPart} active={isStreaming} onApprove={onApprove} />;
           return null;
         })}
         {from === "assistant" && !isStreaming && <Feedback messageId={message.id} />}
@@ -126,7 +166,11 @@ function ChatMessage({
 }
 
 export function AskChat() {
-  const { messages, sendMessage, regenerate, stop, status, error } = useChat<AskMessage>({ throttle: 50 });
+  const { messages, sendMessage, regenerate, stop, addToolApprovalResponse, status, error } = useChat<AskMessage>({
+    throttle: 50,
+    // After Approve/Deny, send the history back so the server runs or skips the tool.
+    sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
+  });
   const reducedMotion = useReducedMotion();
   const newestUserRef = useRef<HTMLDivElement>(null);
 
@@ -169,6 +213,7 @@ export function AskChat() {
               key={message.id}
               message={message}
               isStreaming={busy && message.id === last?.id}
+              onApprove={addToolApprovalResponse}
               ref={message.id === newestUserId ? newestUserRef : undefined}
             />
           ))}

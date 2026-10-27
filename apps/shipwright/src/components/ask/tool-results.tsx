@@ -38,6 +38,14 @@ export function CodeMatches({ matches }: { matches: Output<"tool-searchCode"> })
   );
 }
 
+export function PullRequestResult({ pr }: { pr: Output<"tool-openFixPR"> }) {
+  return (
+    <a href={pr.url} target="_blank" rel="noreferrer" className="font-medium text-brand hover:underline">
+      Pull request #{pr.number} →
+    </a>
+  );
+}
+
 export function ProofResult({ proof }: { proof: Output<"tool-runProof"> }) {
   return (
     <div className="grid grid-cols-1 gap-2">

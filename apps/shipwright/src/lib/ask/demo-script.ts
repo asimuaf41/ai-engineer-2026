@@ -6,6 +6,7 @@ import type { Script } from "@repo/ai/scripted-model";
 
 const aboutKeys = /key|secret|leak/;
 const aboutPriority = /first|priorit/;
+const aboutFix = /fix it|pull request|\bpr\b/;
 
 export const demoScript: Script = ({ prompt }) => {
   // No findLast: our lib is ES2022.
@@ -18,6 +19,28 @@ export const demoScript: Script = ({ prompt }) => {
     .join(" ")
     .toLowerCase();
   const step = prompt.slice(lastUser + 1).filter((message) => message.role === "tool").length;
+
+  // Fix request: ask for approval first, then answer depending on what the founder chose.
+  // This sits before the step-0 branch below, which would otherwise answer every question at step 0.
+  if (aboutFix.test(question)) {
+    if (step === 0) {
+      return [
+        ...reasoning("r1", "Opening a pull request changes their repo, so it needs their approval first."),
+        ...toolCall("call_fix", "openFixPR", { issueId: "svc-key" }),
+        finish("tool-calls"),
+      ];
+    }
+    const denied = JSON.stringify(prompt.at(-1)).includes("execution-denied");
+    return [
+      ...text(
+        "t3",
+        denied
+          ? "No problem, I didn't touch your repo. When you're ready, ask me again and I'll open the pull request."
+          : "Done: **pull request #42** moves the service-role key to the server and uses the anon key in the browser.\n\nNext, **rotate the old key in Supabase** (Settings → API). The old one is already public, so the PR alone isn't enough.",
+      ),
+      finish("stop"),
+    ];
+  }
 
   if (step === 0) {
     return aboutKeys.test(question)
