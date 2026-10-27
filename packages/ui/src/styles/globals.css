@@ -12,6 +12,9 @@
 @source "../components";
 @source "../lib";
 @source "../motion";
+@source "../ai";
+/* pnpm keeps streamdown in this package's node_modules, so the path starts here. */
+@source "../../node_modules/streamdown/dist/*.js";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -189,6 +192,21 @@
   --text-h3: 1.125rem;
   --text-h3--line-height: 1.4;
   --text-h3--letter-spacing: -0.01em;
+}
+
+/* Shimmer: a bright band sweeping across text (used for "Thinking…" and running tools).
+   Slides the background of a clipped gradient; only applied under motion-safe. */
+@theme {
+  --animate-shimmer: shimmer 2s linear infinite;
+
+  @keyframes shimmer {
+    from {
+      background-position: 100% 0;
+    }
+    to {
+      background-position: -100% 0;
+    }
+  }
 }
 
 /* Page width wrapper: centered, 72rem max, more side padding on wider screens */

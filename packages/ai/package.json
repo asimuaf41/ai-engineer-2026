@@ -6,13 +6,18 @@
   "exports": {
     "./client": "./src/client.ts",
     "./models": "./src/models.ts",
-    "./audit": "./src/audit.ts"
+    "./audit": "./src/audit.ts",
+    "./chat": "./src/chat.ts",
+    "./scripted-model": "./src/scripted-model.ts"
   },
   "scripts": {
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "catalog:"
+    "@ai-sdk/anthropic": "catalog:",
+    "@ai-sdk/provider": "catalog:",
+    "@anthropic-ai/sdk": "catalog:",
+    "ai": "catalog:"
   },
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
