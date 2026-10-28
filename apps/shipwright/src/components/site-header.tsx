@@ -7,6 +7,7 @@ const NAV_LINKS = [
   { href: "/#how", label: "How it works", phone: false },
   { href: "/demo", label: "Live demo", phone: true },
   { href: "/ask", label: "Ask", phone: true },
+  { href: "/dashboard", label: "Dashboard", phone: true },
   { href: "/design", label: "Design system", phone: false },
 ];
 

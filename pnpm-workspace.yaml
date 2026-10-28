@@ -29,3 +29,8 @@ catalog:
   "@ai-sdk/anthropic": 4.0.87
   "@ai-sdk/provider": 4.0.33
   streamdown: 2.7.1
+  # Dashboard libraries: exact pins.
+  recharts: 3.10.1
+  "@tanstack/react-table": 9.3.1
+  nuqs: 2.10.2
+  cmdk: 1.1.1

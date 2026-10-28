@@ -113,3 +113,33 @@ Decision and reasons: [ADR 0006](decisions/0006-ai-native-ux.md). Live example: 
 6. **Ignoring reduced motion.** Streamdown's CSS has no rule for it; pass `animated={!useReducedMotion()}`.
 7. **Showing an empty "thinking" block.** Claude sends thinking empty unless `display: "summarized"`; hide empty ones.
 8. **Enter sending mid-composition.** Check `isComposing` so Urdu and Chinese input methods can confirm a word.
+
+## Dashboards
+
+A dashboard is five jobs. Decision and reasons: [ADR 0007](decisions/0007-dashboards.md). Live example: `/dashboard` and `/dashboard/issues` in `apps/shipwright`.
+
+**The 5 jobs**
+1. **See the score at a glance:** KPI cards and a trend chart, with the change written in words, not only color.
+2. **Find any issue fast:** table search, filters and sort, plus a Cmd/Ctrl+K palette.
+3. **Share a view:** filters, sort and page live in the URL (nuqs), so a link opens the same table.
+4. **Never show a blank screen:** skeletons that match the real boxes, and two empty states ("no matches", "nothing yet").
+5. **Never show a broken screen:** one boundary per widget, `retry()`, and a reference id on page errors.
+
+**TanStack Table v8 → v9** (hook rule 8 blocks the old names)
+
+| v8 | v9 |
+|---|---|
+| `useReactTable({ getCoreRowModel: getCoreRowModel() })` | `useTable({ features, columns, data })` |
+| `getSortedRowModel()` / `getFilteredRowModel()` / `getPaginationRowModel()` | `createSortedRowModel()` / `createFilteredRowModel()` / `createPaginatedRowModel()` inside `tableFeatures({ … })` |
+| Every feature is on | Register each one (`rowSortingFeature`, …); prerequisites first |
+| `createColumnHelper<Row>()` | `createColumnHelper<typeof features, Row>()` |
+
+**8 dashboard mistakes to catch** (reconstructed from the repo rules and today's work)
+1. **The v8 table API.** Use `useTable` and `create*RowModel()`; a hook blocks the old names.
+2. **`reset()` in `error.tsx`.** It only clears the error; `retry()` re-fetches and re-renders.
+3. **Hex colors in a chart.** Use `var(--color-<key>)` or `var(--chart-N)` so dark mode follows; a hook blocks hex.
+4. **`dangerouslySetInnerHTML` for chart styles.** Set the CSS variables with the `style` prop instead.
+5. **`features` or `columns` created inside the component.** Every render rebuilds the row models; keep them at module scope.
+6. **"x days ago" or local-time dates in server-rendered text.** The server and browser disagree; use a fixed `timeZone`.
+7. **`vector-effect="non-scaling-stroke"` on a path that draws in.** It breaks `pathLength`, so the line just appears.
+8. **Re-adding a shadcn component with `--overwrite`.** It erases our edits (chart, command, checkbox, badge, button).
