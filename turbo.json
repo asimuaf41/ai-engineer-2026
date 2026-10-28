@@ -6,7 +6,7 @@
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": [".next/**", "!.next/cache/**", "dist/**"],
-      "env": ["ANTHROPIC_API_KEY", "SHIPWRIGHT_AI_MODE", "SKIP_ENV_VALIDATION", "TOOL_APPROVAL_SECRET"]
+      "env": ["ANTHROPIC_API_KEY", "NEXT_PUBLIC_APP_URL", "SHIPWRIGHT_AI_MODE", "SKIP_ENV_VALIDATION", "TOOL_APPROVAL_SECRET"]
     },
     "check-types": {
       "dependsOn": ["^check-types"],
