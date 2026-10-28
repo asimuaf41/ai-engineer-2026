@@ -20,7 +20,13 @@ const SYSTEM_KEY = /^\s*system:/m;
 const CATALOG_ONLY = [
   "next", "react", "react-dom", "typescript", "zod", "@anthropic-ai/sdk", "tailwindcss",
   "ai", "@ai-sdk/react", "@ai-sdk/anthropic", "@ai-sdk/provider", "streamdown",
+  "@tanstack/react-table", "recharts", "cmdk", "nuqs",
 ];
+const OLD_TABLE_API = /\buseReactTable\b|\bgetPaginationRowModel\b|(?<![.\w])get(?:Core|Sorted|Filtered)RowModel\(\)/;
+const ERROR_FILE = /(^|\/)(global-)?error\.tsx$/;
+const RESET = /\breset\b/;
+const RETRY = /\bretry\b/;
+const HEX_CHART_COLOR = /\s(?:fill|stroke|stopColor)=["']#[0-9a-f]{3,8}["']/i;
 
 let input;
 try {
@@ -108,6 +114,20 @@ if (APP_TS_FILE.test(relative)) {
     if (SYSTEM_KEY.test(text)) {
       problems.push('streamText "system" is deprecated in AI SDK 7. Use "instructions".');
     }
+  }
+}
+
+// Rule 8: Dashboards. Block TanStack Table v8 names, the old reset() error API, and hex
+// colors in Recharts so tables, error boundaries and charts follow our current patterns.
+if (APP_TS_FILE.test(relative)) {
+  if (OLD_TABLE_API.test(text)) {
+    problems.push("TanStack Table v8 API. We use v9: useTable({ features }) with tableFeatures({ ... }) and createSortedRowModel() / createFilteredRowModel() / createPaginatedRowModel().");
+  }
+  if (ERROR_FILE.test(relative) && RESET.test(text) && !RETRY.test(text)) {
+    problems.push("Next 16.3+: error boundaries get retry() (re-fetches and re-renders). reset() only clears the error state. Use retry.");
+  }
+  if (text.includes("recharts") && HEX_CHART_COLOR.test(text)) {
+    problems.push("Chart colors come from tokens: var(--color-<key>) from ChartContainer config, or var(--chart-N) / var(--success). Never hex.");
   }
 }
 

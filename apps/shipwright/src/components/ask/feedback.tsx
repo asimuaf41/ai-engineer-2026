@@ -6,8 +6,8 @@ import { Button } from "@repo/ui/components/button";
 import { cn } from "@repo/ui/lib/utils";
 import { ThumbsDownIcon, ThumbsUpIcon } from "lucide-react";
 import { useOptimistic, useState, useTransition } from "react";
-import { saveFeedback } from "@/app/ask/actions";
-import type { Vote } from "@/app/ask/actions";
+import { saveFeedback } from "@/app/(marketing)/ask/actions";
+import type { Vote } from "@/app/(marketing)/ask/actions";
 
 export function Feedback({ messageId }: { messageId: string }) {
   const [saved, setSaved] = useState<Vote>(null);

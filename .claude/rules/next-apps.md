@@ -17,3 +17,12 @@ paths: ["apps/**"]
 - Sticky needs a tall parent (don't add `items-start` to its grid) and no `overflow` hidden/auto
   ancestor. Phones get a plain stack, no sticky columns.
 - Grids that hold code or long text use `grid-cols-1` (`minmax(0,1fr)`), not bare `grid`.
+
+## Dashboards
+
+- Table/filter/sort/page state lives in the URL with nuqs (parsers in one `search-params.ts`);
+  selection stays in `useState`.
+- Each widget gets its own `WidgetBoundary` around its own `Suspense` + a matching skeleton.
+- Two empty states: "no matches" (with Reset) and "nothing yet" (with the next step).
+- Dates rendered on server AND client use a fixed `timeZone`. No "x days ago" in SSR.
+- Don't animate table rows on filter/sort.
