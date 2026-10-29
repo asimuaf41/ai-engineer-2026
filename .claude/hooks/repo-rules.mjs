@@ -27,6 +27,9 @@ const ERROR_FILE = /(^|\/)(global-)?error\.tsx$/;
 const RESET = /\breset\b/;
 const RETRY = /\bretry\b/;
 const HEX_CHART_COLOR = /\s(?:fill|stroke|stopColor)=["']#[0-9a-f]{3,8}["']/i;
+const IMAGE_PRIORITY = /<Image[^>]*\spriority\b/;
+const RAW_IMG = /<img\s/;
+const SATORI_FILE = /(^|\/)(opengraph|twitter)-image\.tsx$/;
 
 let input;
 try {
@@ -128,6 +131,17 @@ if (APP_TS_FILE.test(relative)) {
   }
   if (text.includes("recharts") && HEX_CHART_COLOR.test(text)) {
     problems.push("Chart colors come from tokens: var(--color-<key>) from ChartContainer config, or var(--chart-N) / var(--success). Never hex.");
+  }
+}
+
+// Rule 9: Images. next/image's priority prop is deprecated in Next 16 (use preload), and a raw <img>
+// skips sizing and lazy loading. The opengraph-image and twitter-image files are exempt: Satori needs <img>.
+if (APP_TS_FILE.test(relative)) {
+  if (IMAGE_PRIORITY.test(text)) {
+    problems.push('Next 16 deprecated priority on next/image. Use preload (or fetchPriority="high" / loading="eager").');
+  }
+  if (RAW_IMG.test(text) && !SATORI_FILE.test(relative)) {
+    problems.push("Use next/image (sizes, lazy loading, no layout shift).");
   }
 }
 

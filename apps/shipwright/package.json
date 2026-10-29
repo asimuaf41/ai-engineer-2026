@@ -9,7 +9,8 @@
     "check-types": "next typegen && tsc --noEmit",
     "lh": "node scripts/lighthouse.mjs",
     "lh:desktop": "node scripts/lighthouse.mjs --desktop",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "demo:record": "node scripts/record-demo.mjs"
   },
   "dependencies": {
     "@ai-sdk/react": "catalog:",
@@ -39,6 +40,7 @@
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "chrome-launcher": "1.2.2",
+    "ffmpeg-static": "5.3.0",
     "lighthouse": "13.6.0",
     "tailwindcss": "catalog:",
     "typescript": "catalog:"
