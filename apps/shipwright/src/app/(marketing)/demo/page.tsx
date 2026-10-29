@@ -6,7 +6,9 @@ import { PageTransition } from "@/components/page-transition";
 import { SAMPLE_ISSUES } from "@/lib/sample-issues";
 
 export const metadata: Metadata = {
-  title: "Live demo report — Shipwright",
+  title: "Live production report",
+  description:
+    "See a real production report: the security, database and payment problems Shipwright found in a sample AI-built app, and how each one gets fixed.",
 };
 
 export default function Page() {
@@ -14,7 +16,7 @@ export default function Page() {
 
   return (
     <PageTransition>
-      <main className="container-page pb-24">
+      <div className="container-page pb-24">
         <header className="flex flex-col gap-3 py-12">
           <Link
             href="/"
@@ -35,7 +37,7 @@ export default function Page() {
         </header>
 
         <IssueBoard initialIssues={SAMPLE_ISSUES} />
-      </main>
+      </div>
     </PageTransition>
   );
 }

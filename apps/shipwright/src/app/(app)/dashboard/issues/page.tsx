@@ -3,7 +3,7 @@ import { IssuesTable } from "@/components/dashboard/issues-table";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { getIssues, parseSimulate } from "@/lib/dashboard/data";
 
-export const metadata: Metadata = { title: "Issues · Shipwright" };
+export const metadata: Metadata = { title: "Issues" };
 
 export default async function Page({ searchParams }: PageProps<"/dashboard/issues">) {
   const { simulate } = await searchParams;

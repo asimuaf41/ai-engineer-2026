@@ -86,18 +86,21 @@ export function HowItWorks() {
             <li
               key={step.id}
               data-active={i === active}
-              className="transition-opacity duration-300 lg:flex lg:min-h-[60vh] lg:items-center lg:pl-14 lg:opacity-40 lg:data-[active=true]:opacity-100"
+              // Inactive steps are dimmed with color, not opacity: faded text fails the WCAG contrast minimum.
+              className="group/step lg:flex lg:min-h-[60vh] lg:items-center lg:pl-14"
             >
               <div className="lg:relative">
                 {/* On desktop the tile sits on the progress rail. */}
-                <div className="flex size-9 items-center justify-center rounded-lg border bg-muted lg:absolute lg:-left-14 lg:top-0 lg:bg-background">
+                <div className="flex size-9 items-center justify-center rounded-lg border bg-muted transition-opacity duration-300 lg:absolute lg:-left-14 lg:top-0 lg:bg-background lg:group-data-[active=false]/step:opacity-50">
                   <step.Icon aria-hidden className="size-5 text-brand" />
                 </div>
-                <h3 className="mt-4 text-h2 font-semibold lg:mt-0 lg:pt-1">
+                <h3 className="mt-4 text-h2 font-semibold transition-colors duration-300 lg:mt-0 lg:pt-1 lg:group-data-[active=false]/step:text-muted-foreground">
                   <span className="mr-2 text-muted-foreground tabular-nums">0{i + 1}</span>
                   {step.title}
                 </h3>
-                <p className="mt-3 max-w-md text-lg text-muted-foreground">{step.text}</p>
+                <p className="mt-3 max-w-md text-lg text-muted-foreground transition-colors duration-300 lg:group-data-[active=true]/step:text-foreground">
+                  {step.text}
+                </p>
                 <div aria-hidden className="mt-6 lg:hidden">
                   <step.Visual />
                 </div>

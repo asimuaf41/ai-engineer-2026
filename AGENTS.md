@@ -26,6 +26,10 @@ Course and portfolio monorepo of Asim Ali — read by Claude Code, Cursor and an
 - `pnpm --filter lab check-types` — one workspace only
 - `SKIP_ENV_VALIDATION=1 pnpm check-types` — when there are no real keys
 
+## Workflow
+
+- Repeated jobs are skills: /versions, /review, /ship-day, /new-experiment. Prompt templates: docs/prompt-library.md.
+
 ## Conventions
 
 - Shared code goes in `packages/` only when 2+ apps use it; never copy-paste between apps.

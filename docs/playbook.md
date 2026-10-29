@@ -143,3 +143,18 @@ A dashboard is five jobs. Decision and reasons: [ADR 0007](decisions/0007-dashbo
 6. **"x days ago" or local-time dates in server-rendered text.** The server and browser disagree; use a fixed `timeZone`.
 7. **`vector-effect="non-scaling-stroke"` on a path that draws in.** It breaks `pathLength`, so the line just appears.
 8. **Re-adding a shadcn component with `--overwrite`.** It erases our edits (chart, command, checkbox, badge, button).
+
+## Ship checklist
+
+Demo links must load fast on a phone, preview well and be accessible. Decision and reasons:
+[ADR 0008](decisions/0008-ship-quality.md). Run `/audit-site` to check most of this in one go.
+
+**8 things to remember** (reconstructed from today's work)
+1. **Measure the production build.** Lighthouse, axe and the demo recording run against `next start`, never `next dev`.
+2. **Use the median of 3 runs.** One Lighthouse run is noise; `pnpm lh` already does it.
+3. **Give every page its own title, description and canonical.** Never set `title`, `description` or `url` in the root `openGraph`: every page would inherit the home page's.
+4. **Check that og:image is an absolute `https` URL.** Set `NEXT_PUBLIC_APP_URL` in production; unset, the preview points at localhost.
+5. **Marketing pages in the sitemap, app pages `noindex`.** Also disallow `/dashboard` and `/api/` in `robots.ts`.
+6. **Don't fade text with opacity.** Faded text fails contrast; dim with a color token. Run axe in light, dark and phone.
+7. **Targets of 24 px, a label on every icon button, one `<main>`, and a skip link first.**
+8. **Use `next/image` with `preload`, never `priority` (deprecated in Next 16), and no raw `<img>`.** Fonts go through `next/font`. A hook blocks both image mistakes.
