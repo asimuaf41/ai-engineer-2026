@@ -1,0 +1,4 @@
+# Lighthouse and Playwright output
+reports/
+test-results/
+playwright-report/

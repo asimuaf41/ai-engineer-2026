@@ -3,10 +3,18 @@ import { Button } from "@repo/ui/components/button";
 import { Reveal } from "@repo/ui/motion/reveal";
 import { ScrollProgress } from "@repo/ui/motion/scroll-progress";
 import { ArrowRightIcon } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { HeroShot } from "@/components/hero-shot";
 import { HowItWorks } from "@/components/how-it-works";
 import { PageTransition } from "@/components/page-transition";
+import { DEFAULT_TITLE, SITE } from "@/lib/site";
+
+// "absolute" skips the "%s · Shipwright" template: the home title already says Shipwright.
+export const metadata: Metadata = {
+  title: { absolute: DEFAULT_TITLE },
+  description: SITE.description,
+};
 
 export default function Page() {
   return (
@@ -14,7 +22,7 @@ export default function Page() {
       {/* Outside PageTransition: a fixed bar shouldn't be part of the page snapshot that fades and slides. */}
       <ScrollProgress />
       <PageTransition>
-        <main className="container-page">
+        <div className="container-page">
           {/* Server-rendered and visible on first paint: only the product shot below animates. */}
           <section className="flex flex-col items-center gap-6 pt-20 pb-16 text-center sm:pt-28">
             <Badge variant="outline" className="h-auto px-3 py-1">
@@ -56,7 +64,7 @@ export default function Page() {
               </Link>
             </Button>
           </Reveal>
-        </main>
+        </div>
       </PageTransition>
     </>
   );

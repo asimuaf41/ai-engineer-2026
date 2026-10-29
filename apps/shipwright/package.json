@@ -6,7 +6,10 @@
     "dev": "next dev --port 3000",
     "build": "next build",
     "start": "next start --port 3000",
-    "check-types": "next typegen && tsc --noEmit"
+    "check-types": "next typegen && tsc --noEmit",
+    "lh": "node scripts/lighthouse.mjs",
+    "lh:desktop": "node scripts/lighthouse.mjs --desktop",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@ai-sdk/react": "catalog:",
@@ -28,11 +31,15 @@
     "zod": "catalog:"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.64.1",
     "@repo/typescript-config": "workspace:*",
     "@tailwindcss/postcss": "catalog:",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
+    "chrome-launcher": "1.2.2",
+    "lighthouse": "13.6.0",
     "tailwindcss": "catalog:",
     "typescript": "catalog:"
   }

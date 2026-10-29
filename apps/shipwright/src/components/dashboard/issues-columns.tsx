@@ -42,6 +42,9 @@ export const features = tableFeatures({
 
 const column = createColumnHelper<typeof features, DashboardIssue>();
 
+// WCAG 2.2 asks for a touch target of at least 24 px; the checkbox default is 16 px.
+const CHECKBOX_SIZE = "size-6";
+
 // A fixed time zone gives the same text on the server and in the browser (no hydration mismatch).
 const dateFormat = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
 
@@ -72,6 +75,7 @@ export const columns = column.columns([
         checked={table.getIsAllPageRowsSelected() ? true : table.getIsSomePageRowsSelected() ? "indeterminate" : false}
         onCheckedChange={(checked) => table.toggleAllPageRowsSelected(checked === true)}
         aria-label="Select all issues on this page"
+        className={CHECKBOX_SIZE}
       />
     ),
     cell: ({ row }) => (
@@ -79,6 +83,7 @@ export const columns = column.columns([
         checked={row.getIsSelected()}
         onCheckedChange={(checked) => row.toggleSelected(checked === true)}
         aria-label={`Select "${row.original.title}"`}
+        className={CHECKBOX_SIZE}
       />
     ),
   }),

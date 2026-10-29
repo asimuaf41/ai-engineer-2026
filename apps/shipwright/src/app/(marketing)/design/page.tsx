@@ -16,7 +16,8 @@ import { PageTransition } from "@/components/page-transition";
 import { SAMPLE_ISSUES } from "@/lib/sample-issues";
 
 export const metadata: Metadata = {
-  title: "Design system — Shipwright",
+  title: "Design system",
+  description: "The Shipwright design system: color tokens, type, components and motion in one place.",
 };
 
 // Each swatch pairs a token with the token used for text on top of it.
@@ -71,7 +72,7 @@ function Section({ id, title, intro, children }: { id: string; title: string; in
 export default function Page() {
   return (
     <PageTransition>
-      <main className="container-page py-16">
+      <div className="container-page py-16">
         <header className="flex flex-col gap-3 pb-12">
           <p className="font-mono text-sm tracking-wider text-brand uppercase">Shipwright UI · v1</p>
           <h1 className="text-h1 font-semibold">Design system</h1>
@@ -236,7 +237,7 @@ export default function Page() {
             </Card>
           </div>
         </Section>
-      </main>
+      </div>
     </PageTransition>
   );
 }

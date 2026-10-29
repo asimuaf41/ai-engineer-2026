@@ -14,7 +14,7 @@ import { WidgetBoundary } from "@/components/dashboard/widget-boundary";
 import { parseSimulate } from "@/lib/dashboard/data";
 import { issuesUrl } from "@/lib/dashboard/search-params";
 
-export const metadata: Metadata = { title: "Overview · Shipwright" };
+export const metadata: Metadata = { title: "Overview" };
 
 export default async function Page({ searchParams }: PageProps<"/dashboard">) {
   const { simulate: rawSimulate } = await searchParams;
