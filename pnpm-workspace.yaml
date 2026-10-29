@@ -6,6 +6,7 @@ packages:
 allowBuilds:
   # esbuild only comes in through tsx (playground). Its install script is an optional speed-up, so skip it.
   esbuild: false
+  ffmpeg-static: true
 
 catalog:
   next: 16.4.2
