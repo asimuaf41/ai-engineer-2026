@@ -1,13 +1,12 @@
 // Shared dashboard types. No "server-only" here: client components (table, charts) import these too.
-import type { Issue, Severity } from "@/components/issue-card";
+import { CATEGORIES, type Category, type Issue, SEVERITIES, type Severity } from "@repo/ai/shared";
 
-export const SEVERITIES = ["critical", "high", "medium", "low"] as const satisfies readonly Severity[];
+// These now live in @repo/ai/shared (the mobile app uses them too). Re-exported so imports here don't change.
+export { CATEGORIES, SEVERITIES };
+export type { Category };
 
 // Sort by risk, not alphabet: a plain A-Z sort would put "critical" before "high" only by luck.
 export const SEVERITY_RANK: Record<Severity, number> = { critical: 4, high: 3, medium: 2, low: 1 };
-
-export const CATEGORIES = ["security", "database", "payments", "performance", "ai-cost"] as const;
-export type Category = (typeof CATEGORIES)[number];
 
 export const CATEGORY_LABEL: Record<Category, string> = {
   security: "Security",
@@ -17,7 +16,7 @@ export const CATEGORY_LABEL: Record<Category, string> = {
   "ai-cost": "AI cost",
 };
 
-export type DashboardIssue = Omit<Issue, "summary"> & {
+export type DashboardIssue = Omit<Issue, "summary" | "fix" | "category"> & {
   repo: string;
   category: Category;
   // ISO string: this crosses server -> client, so no Date objects.

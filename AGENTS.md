@@ -13,6 +13,7 @@ Course and portfolio monorepo of Asim Ali — read by Claude Code, Cursor and an
 
 - `apps/shipwright` — flagship product, port 3000
 - `apps/lab` — experiments, port 3001
+- `apps/mobile` — Expo SDK 58 app, see `.claude/rules/mobile.md`
 - `packages/ui` (`@repo/ui`) — shared components and `cn()`
 - `packages/ai` (`@repo/ai`) — Claude client, models, agent loops
 - `packages/typescript-config` — shared tsconfigs

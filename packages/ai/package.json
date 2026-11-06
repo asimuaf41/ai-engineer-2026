@@ -8,7 +8,8 @@
     "./models": "./src/models.ts",
     "./audit": "./src/audit.ts",
     "./chat": "./src/chat.ts",
-    "./scripted-model": "./src/scripted-model.ts"
+    "./scripted-model": "./src/scripted-model.ts",
+    "./shared": "./src/shared/index.ts"
   },
   "scripts": {
     "check-types": "tsc --noEmit"
