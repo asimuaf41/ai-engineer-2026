@@ -9,18 +9,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@repo/ui/components/card";
+import type { Issue, Severity } from "@repo/ai/shared";
 import { cn } from "@repo/ui/lib/utils";
 
-export type Severity = "critical" | "high" | "medium" | "low";
-
-export type Issue = {
-  id: string;
-  severity: Severity;
-  title: string;
-  summary: string;
-  file: string;
-  status: "open" | "fixed";
-};
+// Issue and Severity live in @repo/ai/shared (the mobile app uses them too). Re-exported so imports here don't change.
+export type { Issue, Severity };
 
 // Full class names written out so Tailwind can see them (it can't read built-up strings).
 const STRIP: Record<Severity, string> = {

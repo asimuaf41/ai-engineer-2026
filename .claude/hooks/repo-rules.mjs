@@ -30,6 +30,16 @@ const HEX_CHART_COLOR = /\s(?:fill|stroke|stopColor)=["']#[0-9a-f]{3,8}["']/i;
 const IMAGE_PRIORITY = /<Image[^>]*\spriority\b/;
 const RAW_IMG = /<img\s/;
 const SATORI_FILE = /(^|\/)(opengraph|twitter)-image\.tsx$/;
+const MOBILE_FILE = /^apps\/mobile\/.+\.tsx?$/;
+const SHARED_FILE = /^packages\/ai\/src\/shared\/.+\.tsx?$/;
+const IMPORT_SPECIFIER = /\b(?:from|import|require)\s*\(?\s*["']([^"']+)["']/g;
+const WEB_ONLY_MODULE = /^(?:react-dom|next)(?:\/|$)/;
+const REPO_UI_MODULE = /^@repo\/ui(?:\/|$)/;
+const REPO_AI_MODULE = /^@repo\/ai(?:\/|$)/;
+// A "<" right after a word character is a TypeScript generic (useState<a>), not JSX.
+const WEB_JSX_TAG = /(?<![\w$])<(?:div|span|p|button|a)(?=[\s/>])/;
+const NON_PUBLIC_ENV = /\bprocess\.env\.(?!EXPO_PUBLIC_)\w+/;
+const EXPO_PUBLIC_SECRET = /EXPO_PUBLIC_\w*(?:KEY|SECRET|TOKEN|SERVICE_ROLE)\w*/;
 
 let input;
 try {
@@ -142,6 +152,36 @@ if (APP_TS_FILE.test(relative)) {
   }
   if (RAW_IMG.test(text) && !SATORI_FILE.test(relative)) {
     problems.push("Use next/image (sizes, lazy loading, no layout shift).");
+  }
+}
+
+// Rule 10: Mobile. The phone bundle must not get web or server code, and the app can't keep secrets.
+// packages/ai/src/shared is imported by web, server AND the phone, so it may only import itself.
+if (MOBILE_FILE.test(relative)) {
+  const specifiers = [...text.matchAll(IMPORT_SPECIFIER)].map((match) => match[1]);
+  if (specifiers.some((spec) => WEB_ONLY_MODULE.test(spec) || (REPO_UI_MODULE.test(spec) && !spec.endsWith(".css")))) {
+    problems.push("Web-only. In apps/mobile use react-native primitives and Uniwind classes.");
+  }
+  if (specifiers.some((spec) => REPO_AI_MODULE.test(spec) && spec !== "@repo/ai/shared")) {
+    problems.push("Server code breaks the phone bundle. Import from @repo/ai/shared.");
+  }
+  if (WEB_JSX_TAG.test(text)) {
+    problems.push("Use View / Text / Pressable / Link from expo-router.");
+  }
+  if (NON_PUBLIC_ENV.test(text)) {
+    problems.push("Only EXPO_PUBLIC_ vars reach the app, and they are public. Secrets stay on the server.");
+  }
+  if (EXPO_PUBLIC_SECRET.test(text)) {
+    problems.push("This looks like a secret. Anything in the app can be read by anyone.");
+  }
+}
+
+if (SHARED_FILE.test(relative)) {
+  const sharedDir = path.posix.dirname(relative);
+  const staysInside = (spec) =>
+    spec.startsWith(".") && `${path.posix.normalize(path.posix.join(sharedDir, spec))}/`.startsWith("packages/ai/src/shared/");
+  if ([...text.matchAll(IMPORT_SPECIFIER)].some((match) => !staysInside(match[1]))) {
+    problems.push("shared must stay pure TypeScript (web, server and React Native).");
   }
 }
 

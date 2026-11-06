@@ -2,7 +2,7 @@
 // and the signatures stay the same so the pages don't change.
 import "server-only";
 import { connection } from "next/server";
-import type { Issue, Severity } from "@/components/issue-card";
+import type { Severity } from "@/components/issue-card";
 import { productionScore, SAMPLE_ISSUES } from "@/lib/sample-issues";
 import {
   type Activity,
@@ -38,15 +38,6 @@ function mulberry32(seed: number) {
 
 type Template = { slug: string; title: string; file: string; severity: Severity; category: Category };
 
-const SAMPLE_CATEGORY: Record<string, Category> = {
-  "svc-key": "security",
-  "orders-rls": "database",
-  "stripe-webhook": "payments",
-  "ai-keystroke": "ai-cost",
-  "chat-rate-limit": "ai-cost",
-  "hero-image": "performance",
-};
-
 const REPOS = ["acme/checkout-app", "acme/marketing-site", "acme/admin-panel"] as const;
 
 const TEMPLATES: Template[] = [
@@ -78,7 +69,7 @@ const SEEDS: Seed[] = [
     file: issue.file,
     status: issue.status,
     repo: "acme/checkout-app",
-    category: SAMPLE_CATEGORY[issue.id] ?? "security",
+    category: issue.category,
     daysAgo: Math.floor(rand() * 30),
     hour: Math.floor(rand() * 24),
   })),
@@ -123,9 +114,9 @@ function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-// productionScore wants full Issues; the score only looks at severity and status.
+// The score only looks at severity and status.
 function scoreOf(issues: DashboardIssue[]): number {
-  return productionScore(issues.map((issue): Issue => ({ ...issue, summary: "" })));
+  return productionScore(issues);
 }
 
 export async function getIssues(simulate?: Simulate): Promise<DashboardIssue[]> {
