@@ -1,4 +1,5 @@
 import type { Category, Severity } from "@repo/ai/shared";
+import type { TriageStatus } from "@/lib/triage-types";
 
 // Same words as the web dashboard. Copied here because the web labels live inside apps/shipwright.
 export const CATEGORY_LABEL: Record<Category, string> = {
@@ -14,4 +15,17 @@ export const SEVERITY_LABEL: Record<Severity, string> = {
   high: "High",
   medium: "Medium",
   low: "Low",
+};
+
+// "1 open issue", "3 open issues".
+export function openIssuesText(count: number): string {
+  return `${count} open ${count === 1 ? "issue" : "issues"}`;
+}
+
+export const STATUS_LABEL: Record<TriageStatus, string> = {
+  open: "Open",
+  fixed: "Fixed",
+  snoozed: "Snoozed",
+  dismissed: "Dismissed",
+  escalated: "Escalated",
 };

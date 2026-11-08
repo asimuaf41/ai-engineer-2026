@@ -1,16 +1,23 @@
 import type { Issue } from "@repo/ai/shared";
 import { Link } from "expo-router";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, type PressableProps, Text, View } from "react-native";
 import { SeverityBadge } from "@/components/severity-badge";
 import { CATEGORY_LABEL, SEVERITY_LABEL } from "@/lib/labels";
 
-export function IssueRow({ issue }: { issue: Issue }) {
+// Extra props a parent can add to the row's button, for example the swipe card's long-press and screen-reader actions.
+export type IssueRowExtraProps = Pick<
+  PressableProps,
+  "onLongPress" | "accessibilityActions" | "onAccessibilityAction" | "accessibilityHint"
+>;
+
+export function IssueRow({ issue, extra }: { issue: Issue; extra?: IssueRowExtraProps }) {
   return (
     <Link href={{ pathname: "/issues/[id]", params: { id: issue.id } }} asChild>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`${SEVERITY_LABEL[issue.severity]} issue: ${issue.title}`}
         accessibilityHint="Opens the issue details"
+        {...extra}
         className="gap-2 rounded-xl border border-border bg-card p-4 active:opacity-70"
       >
         <View className="flex-row items-center justify-between gap-2">

@@ -4,7 +4,8 @@ import { useState } from "react";
 import { Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { SeverityBadge } from "@/components/severity-badge";
 import { WEB_URL } from "@/lib/env";
-import { CATEGORY_LABEL } from "@/lib/labels";
+import { CATEGORY_LABEL, STATUS_LABEL } from "@/lib/labels";
+import { useIssueStatus } from "@/lib/triage-store";
 
 function InfoCard({ heading, body }: { heading: string; body: string }) {
   return (
@@ -20,6 +21,7 @@ function InfoCard({ heading, body }: { heading: string; body: string }) {
 export default function IssueDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const issue = DEMO_ISSUES.find((item) => item.id === id);
+  const status = useIssueStatus(id);
   const [openFailed, setOpenFailed] = useState(false);
 
   if (!issue) {
@@ -29,7 +31,7 @@ export default function IssueDetail() {
           Issue not found
         </Text>
         <Text className="text-center text-muted-foreground">{`There is no issue called "${id}".`}</Text>
-        <Link href="/" asChild>
+        <Link href="/issues" asChild>
           <Pressable accessibilityRole="link" hitSlop={12} className="active:opacity-70">
             <Text className="font-semibold text-brand">Back to all issues</Text>
           </Pressable>
@@ -49,7 +51,7 @@ export default function IssueDetail() {
         <View className="flex-row items-center justify-between gap-2">
           <SeverityBadge severity={issue.severity} />
           <Text className="text-xs text-muted-foreground">
-            {`${CATEGORY_LABEL[issue.category]} · ${issue.status === "open" ? "Open" : "Fixed"}`}
+            {`${CATEGORY_LABEL[issue.category]} · ${STATUS_LABEL[status ?? issue.status]}`}
           </Text>
         </View>
         <Text accessibilityRole="header" className="text-2xl font-bold text-foreground">
