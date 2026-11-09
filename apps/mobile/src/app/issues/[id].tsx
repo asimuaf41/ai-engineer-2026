@@ -1,8 +1,9 @@
 import { DEMO_ISSUES } from "@repo/ai/shared";
-import { Link, Stack, useLocalSearchParams } from "expo-router";
+import { Link, Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { SeverityBadge } from "@/components/severity-badge";
+import { WithExpertPill } from "@/components/with-expert-pill";
 import { WEB_URL } from "@/lib/env";
 import { CATEGORY_LABEL, STATUS_LABEL } from "@/lib/labels";
 import { useIssueStatus } from "@/lib/triage-store";
@@ -22,6 +23,7 @@ export default function IssueDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const issue = DEMO_ISSUES.find((item) => item.id === id);
   const status = useIssueStatus(id);
+  const router = useRouter();
   const [openFailed, setOpenFailed] = useState(false);
 
   if (!issue) {
@@ -58,6 +60,7 @@ export default function IssueDetail() {
           {issue.title}
         </Text>
         <Text className="text-sm text-muted-foreground">{issue.file}</Text>
+        {status === "escalated" ? <WithExpertPill /> : null}
       </View>
 
       <InfoCard heading={"What's wrong"} body={issue.summary} />
@@ -74,6 +77,16 @@ export default function IssueDetail() {
         className="items-center rounded-xl bg-primary px-4 py-3 active:opacity-70"
       >
         <Text className="text-base font-semibold text-primary-foreground">Open in web dashboard</Text>
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Triage"
+        accessibilityHint="Opens the triage options"
+        hitSlop={8}
+        onPress={() => router.push({ pathname: "/triage/[id]", params: { id: issue.id } })}
+        className="items-center rounded-xl border border-border bg-card px-4 py-3 active:opacity-70"
+      >
+        <Text className="text-base font-semibold text-foreground">Triage</Text>
       </Pressable>
       {openFailed ? (
         <Text accessibilityRole="alert" className="text-center text-sm text-critical">

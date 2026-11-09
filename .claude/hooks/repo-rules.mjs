@@ -38,7 +38,14 @@ const REPO_UI_MODULE = /^@repo\/ui(?:\/|$)/;
 const REPO_AI_MODULE = /^@repo\/ai(?:\/|$)/;
 // A "<" right after a word character is a TypeScript generic (useState<a>), not JSX.
 const WEB_JSX_TAG = /(?<![\w$])<(?:div|span|p|button|a)(?=[\s/>])/;
-const NON_PUBLIC_ENV = /\bprocess\.env\.(?!EXPO_PUBLIC_)\w+/;
+const RN_JS_ANIMATION = /import\s+(?:type\s+)?\{[^}]*\b(?:Animated|PanResponder)\b[^}]*\}\s*from\s*["']react-native["']/;
+const OLD_WORKLET_CALL = /\brunOn(?:JS|UI)\(/;
+const GESTURE_V2_BUILDER = /\bGesture\.(?:Pan|Tap|LongPress)\(/;
+const GORHOM_SHEET = /from\s*["']@gorhom\/bottom-sheet(?:\/[^"']*)?["']/;
+const HAPTICS_CALL = /\bHaptics\./;
+// Where code runs on the UI thread: a "worklet" directive or a gesture's onUpdate( callback.
+const UI_THREAD_START = /["']worklet["']|\bonUpdate\(/g;
+const NON_PUBLIC_ENV =/\bprocess\.env\.(?!EXPO_PUBLIC_)\w+/;
 const EXPO_PUBLIC_SECRET = /EXPO_PUBLIC_\w*(?:KEY|SECRET|TOKEN|SERVICE_ROLE)\w*/;
 
 let input;
@@ -173,6 +180,32 @@ if (MOBILE_FILE.test(relative)) {
   }
   if (EXPO_PUBLIC_SECRET.test(text)) {
     problems.push("This looks like a secret. Anything in the app can be read by anyone.");
+  }
+}
+
+// Rule 11: Native UI. Animations and gestures must run on the UI thread (Reanimated 4, Gesture Handler 3),
+// and the triage sheet is a native formSheet route, not a sheet library (ADR 0010).
+if (MOBILE_FILE.test(relative)) {
+  if (RN_JS_ANIMATION.test(text)) {
+    problems.push("Use react-native-reanimated / gesture-handler: they run on the UI thread.");
+  }
+  if (OLD_WORKLET_CALL.test(text)) {
+    problems.push("Old Reanimated name. Use scheduleOnRN / scheduleOnUI from react-native-worklets.");
+  }
+  if (GESTURE_V2_BUILDER.test(text)) {
+    problems.push("Gesture Handler 3: use usePanGesture / useTapGesture / useLongPressGesture.");
+  }
+  if (GORHOM_SHEET.test(text)) {
+    problems.push("Use the native formSheet route (ADR 0010).");
+  }
+  // Simple check: look at the next 800 characters after a "worklet" / onUpdate( start. A Haptics call there
+  // without a scheduleOnRN is flagged. It can be a false positive if the callback ended early; the message says how to fix it.
+  const hapticsOnUiThread = [...text.matchAll(UI_THREAD_START)].some((start) => {
+    const window = text.slice(start.index, start.index + 800);
+    return HAPTICS_CALL.test(window) && !window.includes("scheduleOnRN");
+  });
+  if (hapticsOnUiThread) {
+    problems.push("Haptics from the UI thread: wrap in scheduleOnRN and fire once.");
   }
 }
 

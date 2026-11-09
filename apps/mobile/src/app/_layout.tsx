@@ -32,7 +32,14 @@ export default function RootLayout() {
           <Stack.Screen name="issues/[id]" options={{ title: "Issue" }} />
           <Stack.Screen
             name="triage/[id]"
-            options={{ title: "Triage", presentation: "formSheet", sheetAllowedDetents: [0.5, 1] }}
+            options={{
+              presentation: "formSheet",
+              sheetAllowedDetents: [0.45, 0.9],
+              sheetGrabberVisible: true,
+              sheetCornerRadius: 24,
+              headerShown: false,
+              contentStyle: { backgroundColor: asColor(background) },
+            }}
           />
         </Stack>
       </TriageProvider>
