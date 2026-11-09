@@ -1,10 +1,12 @@
 import { DEMO_ISSUES } from "@repo/ai/shared";
-import { Link, Stack, useLocalSearchParams } from "expo-router";
+import { Link, Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Linking, Pressable, ScrollView, Text, View } from "react-native";
 import { SeverityBadge } from "@/components/severity-badge";
+import { WithExpertPill } from "@/components/with-expert-pill";
 import { WEB_URL } from "@/lib/env";
-import { CATEGORY_LABEL } from "@/lib/labels";
+import { CATEGORY_LABEL, STATUS_LABEL } from "@/lib/labels";
+import { useIssueStatus } from "@/lib/triage-store";
 
 function InfoCard({ heading, body }: { heading: string; body: string }) {
   return (
@@ -20,6 +22,8 @@ function InfoCard({ heading, body }: { heading: string; body: string }) {
 export default function IssueDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const issue = DEMO_ISSUES.find((item) => item.id === id);
+  const status = useIssueStatus(id);
+  const router = useRouter();
   const [openFailed, setOpenFailed] = useState(false);
 
   if (!issue) {
@@ -29,7 +33,7 @@ export default function IssueDetail() {
           Issue not found
         </Text>
         <Text className="text-center text-muted-foreground">{`There is no issue called "${id}".`}</Text>
-        <Link href="/" asChild>
+        <Link href="/issues" asChild>
           <Pressable accessibilityRole="link" hitSlop={12} className="active:opacity-70">
             <Text className="font-semibold text-brand">Back to all issues</Text>
           </Pressable>
@@ -49,13 +53,14 @@ export default function IssueDetail() {
         <View className="flex-row items-center justify-between gap-2">
           <SeverityBadge severity={issue.severity} />
           <Text className="text-xs text-muted-foreground">
-            {`${CATEGORY_LABEL[issue.category]} · ${issue.status === "open" ? "Open" : "Fixed"}`}
+            {`${CATEGORY_LABEL[issue.category]} · ${STATUS_LABEL[status ?? issue.status]}`}
           </Text>
         </View>
         <Text accessibilityRole="header" className="text-2xl font-bold text-foreground">
           {issue.title}
         </Text>
         <Text className="text-sm text-muted-foreground">{issue.file}</Text>
+        {status === "escalated" ? <WithExpertPill /> : null}
       </View>
 
       <InfoCard heading={"What's wrong"} body={issue.summary} />
@@ -72,6 +77,16 @@ export default function IssueDetail() {
         className="items-center rounded-xl bg-primary px-4 py-3 active:opacity-70"
       >
         <Text className="text-base font-semibold text-primary-foreground">Open in web dashboard</Text>
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Triage"
+        accessibilityHint="Opens the triage options"
+        hitSlop={8}
+        onPress={() => router.push({ pathname: "/triage/[id]", params: { id: issue.id } })}
+        className="items-center rounded-xl border border-border bg-card px-4 py-3 active:opacity-70"
+      >
+        <Text className="text-base font-semibold text-foreground">Triage</Text>
       </Pressable>
       {openFailed ? (
         <Text accessibilityRole="alert" className="text-center text-sm text-critical">
