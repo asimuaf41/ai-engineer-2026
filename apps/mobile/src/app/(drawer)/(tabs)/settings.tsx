@@ -1,5 +1,6 @@
 import Constants from "expo-constants";
-import { Pressable, ScrollView, Switch, Text, View } from "react-native";
+import { useState } from "react";
+import { Linking, Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { Uniwind, useCSSVariable, useUniwind } from "uniwind";
 import { ScreenTitle } from "@/components/screen-title";
 import { asColor } from "@/lib/colors";
@@ -25,6 +26,39 @@ function SectionTitle({ children }: { children: string }) {
     <Text accessibilityRole="header" className="px-1 text-sm font-semibold text-muted-foreground">
       {children}
     </Text>
+  );
+}
+
+// Public contact details, shown to everyone who installs the app (clients, LinkedIn visitors).
+const DEVELOPER = { name: "Asim Ali", email: "asimuaf41@gmail.com", phone: "03026046119" };
+
+// One tappable contact line: tapping opens the mail app or the phone dialer.
+function ContactRow({ label, value, url, hint }: { label: string; value: string; url: string; hint: string }) {
+  const [failed, setFailed] = useState(false);
+  return (
+    <View className="border-t border-border">
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${label}: ${value}`}
+        accessibilityHint={hint}
+        hitSlop={4}
+        onPress={() => {
+          setFailed(false);
+          Linking.openURL(url).catch(() => setFailed(true));
+        }}
+        className="min-h-14 justify-center px-4 py-3 active:opacity-70"
+      >
+        <Text className="text-xs text-muted-foreground">{label}</Text>
+        <Text selectable className="text-base font-semibold text-brand">
+          {value}
+        </Text>
+      </Pressable>
+      {failed ? (
+        <Text accessibilityRole="alert" className="px-4 pb-3 text-xs text-critical">
+          {`Couldn't open this on your device. You can copy it instead.`}
+        </Text>
+      ) : null}
+    </View>
   );
 }
 
@@ -100,14 +134,17 @@ export default function Settings() {
         </View>
       </View>
 
-      {__DEV__ ? (
-        <View className="gap-2">
-          <SectionTitle>Developer</SectionTitle>
-          <View className="rounded-xl border border-border bg-card p-4">
-            <Text className="text-sm text-muted-foreground">Developer tools arrive in Part I.</Text>
+      <View className="gap-2">
+        <SectionTitle>Developer</SectionTitle>
+        <View className="overflow-hidden rounded-xl border border-border bg-card">
+          <View accessible accessibilityLabel={`Developer: ${DEVELOPER.name}`} className="min-h-14 justify-center px-4 py-3">
+            <Text className="text-xs text-muted-foreground">Built by</Text>
+            <Text className="text-base font-semibold text-card-foreground">{DEVELOPER.name}</Text>
           </View>
+          <ContactRow label="Email" value={DEVELOPER.email} url={`mailto:${DEVELOPER.email}`} hint="Opens your mail app" />
+          <ContactRow label="Phone" value={DEVELOPER.phone} url={`tel:${DEVELOPER.phone}`} hint="Starts a call" />
         </View>
-      ) : null}
+      </View>
     </ScrollView>
   );
 }

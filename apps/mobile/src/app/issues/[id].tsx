@@ -88,6 +88,21 @@ export default function IssueDetail() {
       >
         <Text className="text-base font-semibold text-foreground">Triage</Text>
       </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Ask about this issue"
+        accessibilityHint="Opens Ask Shipwright with a question about this issue"
+        hitSlop={8}
+        onPress={() =>
+          router.push({
+            pathname: "/ask",
+            params: { q: `Why is ${issue.id} "${issue.title}" a problem and how do I fix it?` },
+          })
+        }
+        className="items-center rounded-xl border border-border bg-card px-4 py-3 active:opacity-70"
+      >
+        <Text className="text-base font-semibold text-foreground">Ask about this issue</Text>
+      </Pressable>
       {openFailed ? (
         <Text accessibilityRole="alert" className="text-center text-sm text-critical">
           Couldn&apos;t open the browser. Try again.

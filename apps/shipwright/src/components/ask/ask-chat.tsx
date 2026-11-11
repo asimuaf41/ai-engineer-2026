@@ -3,6 +3,7 @@
 // The Ask Shipwright chat. useChat streams from /api/chat; this file only decides how each
 // message part looks: text, reasoning, and tool cards. All AI pieces come from @repo/ui/ai.
 import { useChat } from "@ai-sdk/react";
+import { ASK_DEFAULT_DAILY_LIMIT, ASK_SUGGESTIONS } from "@repo/ai/shared";
 import { lastAssistantMessageIsCompleteWithApprovalResponses } from "ai";
 import { Message, MessageContent } from "@repo/ui/ai/message";
 import { PromptInput } from "@repo/ui/ai/prompt-input";
@@ -19,19 +20,14 @@ import type { LucideIcon } from "lucide-react";
 import { useEffect, useRef } from "react";
 import type { Ref } from "react";
 import { Feedback } from "@/components/ask/feedback";
+import { BusyDayNote, LimitCard, QuotaPill, useFetchedQuota } from "@/components/ask/quota";
 import { CodeMatches, IssueList, ProofResult, PullRequestResult } from "@/components/ask/tool-results";
+import { parseAskError } from "@/lib/ask/errors";
 import type { AskMessage } from "@/lib/ask/tools";
 
 type Part = AskMessage["parts"][number];
 type ToolPart = Extract<Part, { type: `tool-${string}` }>;
 type Approve = (response: { id: string; approved: boolean }) => void;
-
-const SUGGESTIONS = [
-  "Is my app safe to launch?",
-  "What should I fix first?",
-  "Did any secrets leak?",
-  "Fix it: open a pull request",
-];
 
 const TOOL_UI = {
   "tool-listIssues": { icon: ListChecksIcon, running: "Checking the issue list", done: "Checked the issue list" },
@@ -172,12 +168,20 @@ export function AskChat() {
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithApprovalResponses,
   });
   const reducedMotion = useReducedMotion();
+  const fetchedQuota = useFetchedQuota();
   const newestUserRef = useRef<HTMLDivElement>(null);
 
   const busy = status === "submitted" || status === "streaming";
   const last = messages.at(-1);
   // Before the first visible part arrives (the model is still thinking silently), show a "Thinking…" line.
   const waiting = busy && (last?.role === "user" || last?.parts.every((part) => part.type === "step-start") === true);
+
+  // The newest answer carries the freshest quota; before any answer we use the one fetched on load.
+  const lastMeta = messages.filter((message) => message.role === "assistant" && message.metadata).at(-1)?.metadata;
+  const quota = lastMeta?.quota ?? fetchedQuota;
+  const askError = error ? parseAskError(error) : undefined;
+  const limitReached = askError?.kind === "daily_limit" || quota?.remaining === 0;
+  const resetAt = askError?.resetAt ?? quota?.resetAt;
 
   // No findLast: our lib is ES2022.
   const newestUserId = messages.filter((message) => message.role === "user").at(-1)?.id;
@@ -197,7 +201,7 @@ export function AskChat() {
             Ask in plain English. Shipwright checks your scan results and your code before it answers.
           </p>
           <Stagger className="flex flex-wrap gap-2">
-            {SUGGESTIONS.map((suggestion) => (
+            {ASK_SUGGESTIONS.map((suggestion) => (
               <StaggerItem key={suggestion}>
                 <Button type="button" variant="outline" onClick={() => sendMessage({ text: suggestion })}>
                   {suggestion}
@@ -205,6 +209,7 @@ export function AskChat() {
               </StaggerItem>
             ))}
           </Stagger>
+          {quota ? <QuotaPill quota={quota} /> : null}
         </div>
       ) : (
         <div className="flex flex-1 flex-col gap-8 py-8">
@@ -222,12 +227,15 @@ export function AskChat() {
               <Shimmer>Thinking…</Shimmer>
             </Message>
           )}
-          {error && (
+          {lastMeta?.mode === "busy-day" && <BusyDayNote />}
+          {askError && askError.kind !== "daily_limit" && (
             <div role="alert" className="flex items-center justify-between gap-3 rounded-lg border border-critical/40 p-3 text-sm text-critical">
-              <p>Something went wrong, so the answer stopped.</p>
-              <Button type="button" variant="outline" size="sm" onClick={() => regenerate()}>
-                Retry
-              </Button>
+              <p>{askError.message}</p>
+              {askError.kind !== "too_long" && (
+                <Button type="button" variant="outline" size="sm" onClick={() => regenerate()}>
+                  Retry
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -236,12 +244,23 @@ export function AskChat() {
         {messages.length === 0 ? "" : busy ? "Shipwright is answering" : "Answer ready"}
       </p>
       <div className="sticky bottom-0 bg-linear-to-t from-background from-70% pt-6 pb-4">
-        <PromptInput
-          status={status}
-          onSubmit={(text) => sendMessage({ text })}
-          onStop={stop}
-          placeholder="Ask about your app…"
-        />
+        {limitReached ? (
+          <LimitCard resetAt={resetAt} limit={quota?.limit ?? ASK_DEFAULT_DAILY_LIMIT} />
+        ) : (
+          <>
+            {quota && messages.length > 0 ? (
+              <div className="mb-2 flex justify-center">
+                <QuotaPill quota={quota} />
+              </div>
+            ) : null}
+            <PromptInput
+              status={status}
+              onSubmit={(text) => sendMessage({ text })}
+              onStop={stop}
+              placeholder="Ask about your app…"
+            />
+          </>
+        )}
         <p className="mt-2 text-center text-xs text-muted-foreground">
           Shipwright can make mistakes. Check important details before you act.
         </p>

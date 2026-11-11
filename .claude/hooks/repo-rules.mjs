@@ -45,6 +45,18 @@ const GORHOM_SHEET = /from\s*["']@gorhom\/bottom-sheet(?:\/[^"']*)?["']/;
 const HAPTICS_CALL = /\bHaptics\./;
 // Where code runs on the UI thread: a "worklet" directive or a gesture's onUpdate( callback.
 const UI_THREAD_START = /["']worklet["']|\bonUpdate\(/g;
+const MOBILE_SRC_FILE = /^apps\/mobile\/src\/.+\.tsx?$/;
+const USE_CHAT_CALL = /\buseChat\s*[<(]/;
+const RESUME_TRUE = /\bresume\s*:\s*true\b/;
+const LINE_COMMENT = /^\s*\/\/.*$/gm;
+// A typed address inside a string: localhost, 127.0.0.1, 192.168.x.x or 10.x.x.x.
+const HARDCODED_ADDRESS =
+  /["'`][^"'`\n]*(?:https?:\/\/(?:localhost|127\.0\.0\.1)|\b192\.168\.\d{1,3}\.\d{1,3}\b|\b10\.\d{1,3}\.\d{1,3}\.\d{1,3}\b)[^"'`\n]*["'`]/;
+const MARKDOWN_LIB = /^(?:streamdown|react-markdown|react-native-markdown-display)(?:\/|$)/;
+// Value imports only: "import type" is fine because it is erased from the bundle.
+const MODEL_CALL_IMPORT = /import\s+(?!type\b)\{[^}]*\b(?:streamText|generateText|tool)\b[^}]*\}\s*from\s*["']ai["']/;
+const AI_SDK_PROVIDER_IMPORT =
+  /import\s+(?!type\b)[^"';]*?from\s*["'](?:@anthropic-ai\/sdk|openai|@ai-sdk\/(?:anthropic|openai))(?:\/[^"']*)?["']/;
 const NON_PUBLIC_ENV =/\bprocess\.env\.(?!EXPO_PUBLIC_)\w+/;
 const EXPO_PUBLIC_SECRET = /EXPO_PUBLIC_\w*(?:KEY|SECRET|TOKEN|SERVICE_ROLE)\w*/;
 
@@ -175,7 +187,8 @@ if (MOBILE_FILE.test(relative)) {
   if (WEB_JSX_TAG.test(text)) {
     problems.push("Use View / Text / Pressable / Link from expo-router.");
   }
-  if (NON_PUBLIC_ENV.test(text)) {
+  // app.config.ts runs on the build machine and never ships in the app, so it may read APP_VARIANT.
+  if (NON_PUBLIC_ENV.test(text) && relative !== "apps/mobile/app.config.ts") {
     problems.push("Only EXPO_PUBLIC_ vars reach the app, and they are public. Secrets stay on the server.");
   }
   if (EXPO_PUBLIC_SECRET.test(text)) {
@@ -206,6 +219,28 @@ if (MOBILE_FILE.test(relative)) {
   });
   if (hapticsOnUiThread) {
     problems.push("Haptics from the UI thread: wrap in scheduleOnRN and fire once.");
+  }
+}
+
+// Rule 12: AI on mobile. Chat must stream (expo/fetch), models run on the server, and no address is typed by hand.
+// api-url.ts may mention addresses in its comments; they are removed before checking.
+if (MOBILE_SRC_FILE.test(relative)) {
+  const specifiers = [...text.matchAll(IMPORT_SPECIFIER)].map((match) => match[1]);
+  if (USE_CHAT_CALL.test(text) && !text.includes("expo/fetch") && !text.includes("createAskTransport")) {
+    problems.push("Mobile chat needs a streaming fetch: use createAskTransport() from @/lib/ask.");
+  }
+  if (USE_CHAT_CALL.test(text) && RESUME_TRUE.test(text)) {
+    problems.push("resume uses document visibility (web only).");
+  }
+  const code = relative === "apps/mobile/src/lib/api-url.ts" ? text.replace(LINE_COMMENT, "") : text;
+  if (HARDCODED_ADDRESS.test(code)) {
+    problems.push("Use apiUrl() from @/lib/api-url.");
+  }
+  if (specifiers.some((spec) => MARKDOWN_LIB.test(spec))) {
+    problems.push("Use components/chat/markdown-lite.tsx (no web or unmaintained markdown libs).");
+  }
+  if (MODEL_CALL_IMPORT.test(text) || AI_SDK_PROVIDER_IMPORT.test(text)) {
+    problems.push("Model calls run on the server (/api/chat). The app never holds an AI key.");
   }
 }
 

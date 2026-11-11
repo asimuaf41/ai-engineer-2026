@@ -26,7 +26,7 @@ paths: ["apps/mobile/**"]
 
 ## Native UI (Day 11, see ADR 0010; hook rule 11 enforces 11-13)
 
-10. **Tabs are native.** Use `NativeTabs` from `expo-router/native-tabs`, not JS tabs (they are not native and get no Liquid Glass).
+10. **Tabs are native; the side menu wraps them.** Use `NativeTabs` from `expo-router/native-tabs`, not JS tabs (they are not native and get no Liquid Glass). The drawer (`expo-router/drawer`, in `src/app/(drawer)`) holds the tabs plus the advanced views; open it with `MenuButton` (a swipe alone is not enough, rule 17). Stack screens (issue, triage, ask) stay on the root Stack.
 11. **Animate on the UI thread.** Reanimated 4 only: no `Animated` or `PanResponder` from `react-native`. To cross threads use
     `scheduleOnRN` / `scheduleOnUI` from `react-native-worklets`, never `runOnJS` / `runOnUI`.
 12. **Gesture Handler 3 hooks.** `usePanGesture`, `useTapGesture`, `useLongPressGesture`, not the `Gesture.Pan()` builder.
@@ -44,6 +44,27 @@ paths: ["apps/mobile/**"]
 19. **Triage goes through the store.** Call `triage(id, status)` from `triage-store`, then `router.back()`. Screens reached by
     id (detail, sheet) need a not-found state. Lists show only open issues, so a status that leaves "open" leaves the list.
 
+## AI on mobile (Day 12, see ADR 0012; hook rule 12 enforces 20-24)
+
+20. **One AI backend.** The app calls the same `/api/chat` as the website. Models run on the server; the app never holds an
+    AI key and never imports `streamText`, `generateText` or an AI provider SDK.
+21. **Stream with `expo/fetch`.** React Native's own `fetch` cannot stream a response. Build the transport with
+    `createAskTransport()` from `@/lib/ask`; do not make a second one.
+22. **No `resume` in `useChat`.** It reads `document` (web only). If the app goes to the background, `stop()` and offer Retry.
+23. **Addresses come from `apiUrl()`.** `localhost` on a phone means the phone. Never type `localhost` or a `192.168.x.x` address.
+24. **Markdown is `MarkdownLite`.** Our own small renderer in `components/chat/markdown-lite.tsx`. No `streamdown`, `react-markdown`
+    or other markdown libraries (web-only or unmaintained).
+25. **Tool types live in `@repo/ai/shared`.** `AskUITools` is shared with the web app, and `contract.check.ts` fails
+    `check-types` if the server's tools drift from it. Change the shared type first, never loosen the check.
+26. **Keyboard = `react-native-keyboard-controller`.** `KeyboardProvider` in the root layout, `KeyboardChatScrollView` for the
+    list and `KeyboardStickyView` for the composer. The built-in `KeyboardAvoidingView` is unreliable on Android edge-to-edge.
+27. **Errors are calm and shared.** Show the wording from `describeAskError` (`parseAskError` in `@/lib/ask`), never raw error
+    text or URLs. A daily limit is a friendly card, not a red error, and Retry is hidden for it.
+28. **Streaming UI is cheap.** `throttle` on `useChat`, scroll when a message starts (not per chunk), a screen-reader
+    announcement when an answer finishes, and Reduce Motion respected.
+29. **Variants install side by side.** `app.config.ts` reads `APP_VARIANT` (development, preview, production) to set the name
+    and bundle id; only `EXPO_PUBLIC_` values reach the app. Native changes need a new build.
+
 ## Before saying "done"
 
 - A native change (new native package, `app.json` plugin, icon, scheme, permission) needs a rebuild: `pnpm ios:build` on
@@ -52,3 +73,5 @@ paths: ["apps/mobile/**"]
 - Proof = `pnpm --filter mobile check-types` **and** `pnpm --filter mobile exec expo export --platform android
   --output-dir <temp folder>` (this proves the native bundle builds, not just web; then delete the folder) **and** a
   simulator screenshot: `xcrun simctl io booted screenshot docs/screens/<name>.png`.
+- Proof for chat changes = `check-types` + android export + a Simulator screenshot of a **finished answer** + the
+  **server log line** (`[api/chat] client=... mode=... messages=... left=...`) for that request.

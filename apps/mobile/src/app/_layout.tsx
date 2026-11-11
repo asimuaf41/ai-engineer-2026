@@ -3,6 +3,7 @@ import "../global.css";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { KeyboardProvider } from "react-native-keyboard-controller";
 import { ReduceMotion, ReducedMotionConfig } from "react-native-reanimated";
 import { useCSSVariable } from "uniwind";
 import { asColor } from "@/lib/colors";
@@ -19,29 +20,35 @@ export default function RootLayout() {
         {/* Follow the phone's "reduce motion" setting: animations jump straight to their end value. */}
         <ReducedMotionConfig mode={ReduceMotion.System} />
         <StatusBar style="auto" />
-        <Stack
-          screenOptions={{
-            headerStyle: { backgroundColor: asColor(background) },
-            headerTintColor: asColor(foreground),
-            headerTitleStyle: { color: asColor(foreground) },
-            contentStyle: { backgroundColor: asColor(background) },
-            headerShadowVisible: false,
-          }}
-        >
-          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          <Stack.Screen name="issues/[id]" options={{ title: "Issue" }} />
-          <Stack.Screen
-            name="triage/[id]"
-            options={{
-              presentation: "formSheet",
-              sheetAllowedDetents: [0.45, 0.9],
-              sheetGrabberVisible: true,
-              sheetCornerRadius: 24,
-              headerShown: false,
+        {/* Gives chat screens keyboard-aware views; must wrap the navigator. */}
+        <KeyboardProvider>
+          <Stack
+            screenOptions={{
+              headerStyle: { backgroundColor: asColor(background) },
+              headerTintColor: asColor(foreground),
+              headerTitleStyle: { color: asColor(foreground) },
               contentStyle: { backgroundColor: asColor(background) },
+              headerShadowVisible: false,
+              // The previous screen is inside the "(drawer)" group, so its name would show as the back label.
+              headerBackButtonDisplayMode: "minimal",
             }}
-          />
-        </Stack>
+          >
+            <Stack.Screen name="(drawer)" options={{ headerShown: false }} />
+            <Stack.Screen name="issues/[id]" options={{ title: "Issue" }} />
+            <Stack.Screen name="ask" options={{ title: "Ask Shipwright" }} />
+            <Stack.Screen
+              name="triage/[id]"
+              options={{
+                presentation: "formSheet",
+                sheetAllowedDetents: [0.45, 0.9],
+                sheetGrabberVisible: true,
+                sheetCornerRadius: 24,
+                headerShown: false,
+                contentStyle: { backgroundColor: asColor(background) },
+              }}
+            />
+          </Stack>
+        </KeyboardProvider>
       </TriageProvider>
     </GestureHandlerRootView>
   );
