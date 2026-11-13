@@ -10,6 +10,11 @@ node_modules/
 dist/
 .turbo/
 
+# screen recordings: too big for git, keep them on disk or upload them elsewhere
+*.mp4
+*.mov
+*.zip
+
 # OS / editor
 .DS_Store
 .vscode/*

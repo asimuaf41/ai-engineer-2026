@@ -2,6 +2,7 @@ import { SEVERITIES } from "@repo/ai/shared";
 import { FlatList, Text, View } from "react-native";
 import { FadeInDown } from "react-native-reanimated";
 import { AnimatedView } from "@/components/animated";
+import { AskCard } from "@/components/ask-card";
 import { IssueRow } from "@/components/issue-row";
 import { ScoreCard } from "@/components/score-card";
 import { ScreenTitle } from "@/components/screen-title";
@@ -27,6 +28,10 @@ function Header() {
       <ScreenTitle>Overview</ScreenTitle>
 
       <ScoreCard score={score} openCount={openIssues.length} />
+
+      <AnimatedView entering={enter(0)}>
+        <AskCard />
+      </AnimatedView>
 
       <View className="flex-row gap-2">
         {SEVERITIES.map((severity, index) => {

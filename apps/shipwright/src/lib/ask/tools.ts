@@ -2,6 +2,7 @@
 // and return demo data until Day 12/14 connects real scans.
 // repo-rules: allow-secret-samples  (the fake repo below contains a leaked key on purpose)
 import "server-only";
+import type { AskMetadata } from "@repo/ai/shared";
 import type { InferUITools, UIMessage } from "ai";
 import { tool } from "ai";
 import { z } from "zod";
@@ -98,4 +99,4 @@ const openFixPR = tool({
 
 export const askTools = { listIssues, searchCode, runProof, openFixPR };
 
-export type AskMessage = UIMessage<never, never, InferUITools<typeof askTools>>;
+export type AskMessage = UIMessage<AskMetadata, never, InferUITools<typeof askTools>>;
