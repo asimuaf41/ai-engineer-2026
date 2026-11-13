@@ -2,6 +2,7 @@
 // Runs AFTER Claude edits or writes a file and checks our house rules:
 // no hardcoded model ids, no secret-looking public env vars, and shared
 // package versions must come from the pnpm catalog. Broken rule = exit 2.
+import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 
@@ -57,6 +58,14 @@ const MARKDOWN_LIB = /^(?:streamdown|react-markdown|react-native-markdown-displa
 const MODEL_CALL_IMPORT = /import\s+(?!type\b)\{[^}]*\b(?:streamText|generateText|tool)\b[^}]*\}\s*from\s*["']ai["']/;
 const AI_SDK_PROVIDER_IMPORT =
   /import\s+(?!type\b)[^"';]*?from\s*["'](?:@anthropic-ai\/sdk|openai|@ai-sdk\/(?:anthropic|openai))(?:\/[^"']*)?["']/;
+const MIGRATION_FILE = /^supabase\/migrations\/.+\.sql$/;
+const SQL_COMMENT = /--[^\n]*|\/\*[\s\S]*?\*\//g;
+const CREATE_PUBLIC_TABLE = /\bcreate\s+table\s+(?:if\s+not\s+exists\s+)?public\.("?)(\w+)\1/gi;
+const CREATE_FUNCTION = /\bcreate\s+(?:or\s+replace\s+)?function\s+("?[\w]+"?\.)?("?\w+"?)\s*\(/gi;
+const SECURITY_DEFINER = /\bsecurity\s+definer\b/i;
+const SET_SEARCH_PATH = /\bset\s+search_path\b/i;
+const GRANT_TO_ANON = /\bgrant\b[^;]*\bto\b[^;]*\banon\b/i;
+const SUPABASE_HOSTED_FLAG = /\bsupabase\b[^&|;]*--(?:remote|yes)\b/;
 const NON_PUBLIC_ENV =/\bprocess\.env\.(?!EXPO_PUBLIC_)\w+/;
 const EXPO_PUBLIC_SECRET = /EXPO_PUBLIC_\w*(?:KEY|SECRET|TOKEN|SERVICE_ROLE)\w*/;
 
@@ -241,6 +250,57 @@ if (MOBILE_SRC_FILE.test(relative)) {
   }
   if (MODEL_CALL_IMPORT.test(text) || AI_SDK_PROVIDER_IMPORT.test(text)) {
     problems.push("Model calls run on the server (/api/chat). The app never holds an AI key.");
+  }
+}
+
+// Rule 13: Database. Public tables need RLS, definer helpers stay private, applied migrations never change,
+// and hosted changes (--remote / --yes) are run by hand, never from a package.json script (CLI v3).
+if (MIGRATION_FILE.test(relative)) {
+  const sql = text.replace(SQL_COMMENT, " ");
+  for (const [, , table] of sql.matchAll(CREATE_PUBLIC_TABLE)) {
+    const enableRls = new RegExp(
+      `\\balter\\s+table\\s+(?:only\\s+)?(?:if\\s+exists\\s+)?public\\."?${table}"?\\s+enable\\s+row\\s+level\\s+security`,
+      "i",
+    );
+    if (!enableRls.test(sql)) {
+      problems.push(`Every public table needs RLS in the same migration (Day 13). Missing for public.${table}.`);
+    }
+  }
+  // Each function runs from its "create" to the next "create" (or the end of the file).
+  const starts = [...sql.matchAll(CREATE_FUNCTION)];
+  starts.forEach((start, index) => {
+    const body = sql.slice(start.index, starts[index + 1]?.index ?? sql.length);
+    const schema = (start[1] ?? "").replace(/[".]/g, "").toLowerCase();
+    if (SECURITY_DEFINER.test(body) && (schema !== "private" || !SET_SEARCH_PATH.test(body))) {
+      problems.push(`Security-definer helpers live in the private schema with set search_path = ''. Check ${start[2]}().`);
+    }
+  });
+  if (GRANT_TO_ANON.test(sql)) {
+    problems.push("anon gets nothing by default. Add a policy + grant on purpose and explain it in the PR.");
+  }
+  // "On main" = the file exists in main's tree. "Changed" = it differs from main (this includes uncommitted edits).
+  const git = (...args) => execFileSync("git", args, { cwd: projectDir, stdio: ["ignore", "pipe", "ignore"] }).toString();
+  for (const base of ["main", "origin/main"]) {
+    try {
+      git("cat-file", "-e", `${base}:${relative}`);
+      if (git("diff", base, "--name-only", "--", relative).trim()) {
+        problems.push("Never edit an applied migration. Create a new one: pnpm exec supabase migration new <name>.");
+      }
+      break;
+    } catch {
+      // Not on this base (or no git / no such branch): try the next one. A brand-new migration ends up here and is fine.
+    }
+  }
+}
+
+if (path.posix.basename(relative) === "package.json") {
+  try {
+    const scripts = Object.values(JSON.parse(text).scripts ?? {});
+    if (scripts.some((script) => typeof script === "string" && SUPABASE_HOSTED_FLAG.test(script))) {
+      problems.push("Hosted changes are run by hand, not by scripts (CLI v3 safety).");
+    }
+  } catch {
+    // Invalid JSON is already reported by the package.json check above.
   }
 }
 

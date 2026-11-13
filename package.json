@@ -10,9 +10,16 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "check-types": "turbo run check-types",
-    "agent": "pnpm --filter @repo/playground agent"
+    "agent": "pnpm --filter @repo/playground agent",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:status": "supabase status",
+    "db:reset": "supabase db reset",
+    "db:test": "supabase test db",
+    "db:types": "supabase gen types typescript"
   },
   "devDependencies": {
+    "supabase": "3.1.0",
     "turbo": "^2.11.8",
     "typescript": "catalog:"
   }

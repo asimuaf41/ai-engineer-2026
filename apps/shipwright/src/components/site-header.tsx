@@ -5,7 +5,9 @@ import Link from "next/link";
 // phone: true = still shown on phones. The others hide below sm so the header stays on one line.
 const NAV_LINKS = [
   { href: "/#how", label: "How it works", phone: false },
-  { href: "/demo", label: "Live demo", phone: true },
+  // shortLabel: a shorter word on phones, so five links and the theme button fit in 360px.
+  { href: "/demo", label: "Live demo", shortLabel: "Demo", phone: true },
+  { href: "/pricing", label: "Pricing", phone: true },
   { href: "/ask", label: "Ask", phone: true },
   { href: "/dashboard", label: "Dashboard", phone: true },
   { href: "/design", label: "Design system", phone: false },
@@ -24,16 +26,23 @@ export function SiteHeader() {
           <span aria-hidden className="size-2 rounded-full bg-brand" />
           Shipwright
         </Link>
-        <div className="flex items-center gap-1">
+        <div className="flex items-center sm:gap-1">
           <nav aria-label="Main">
-            <ul className="flex items-center gap-1">
+            <ul className="flex items-center sm:gap-1">
               {NAV_LINKS.map((link) => (
                 <li key={link.href} className={cn(!link.phone && "hidden sm:inline-flex")}>
                   <Link
                     href={link.href}
-                    className="rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                    className="rounded-md px-1 py-2.5 text-sm text-muted-foreground sm:px-3 sm:py-1.5 hover:bg-accent hover:text-accent-foreground"
                   >
-                    {link.label}
+                    {"shortLabel" in link ? (
+                      <>
+                        <span className="sm:hidden">{link.shortLabel}</span>
+                        <span className="hidden sm:inline">{link.label}</span>
+                      </>
+                    ) : (
+                      link.label
+                    )}
                   </Link>
                 </li>
               ))}

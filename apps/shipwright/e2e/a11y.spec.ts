@@ -1,7 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
-const PAGES = ["/", "/demo", "/ask", "/dashboard", "/dashboard/issues"];
+const PAGES = ["/", "/demo", "/ask", "/pricing", "/dashboard", "/dashboard/issues"];
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 
 type Violation = Awaited<ReturnType<AxeBuilder["analyze"]>>["violations"][number];
