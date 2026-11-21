@@ -1,6 +1,7 @@
 import { Button } from "@repo/ui/components/button";
 import { ChevronsUpDownIcon, GitBranchIcon } from "lucide-react";
 import Link from "next/link";
+import { Logo } from "@/components/logo";
 import { AppNav } from "./app-nav";
 import { DEMO_REPO } from "./nav";
 
@@ -21,9 +22,8 @@ export function RepoSwitcher() {
 export function AppSidebar() {
   return (
     <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col gap-4 border-r bg-background p-3 lg:flex">
-      <Link href="/" className="flex items-center gap-2 px-3 py-2 font-semibold tracking-tight">
-        <span aria-hidden className="size-2 rounded-full bg-brand" />
-        Shipwright
+      <Link href="/" aria-label="Shipwright home" className="rounded-md px-3 py-2 outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+        <Logo />
       </Link>
       <RepoSwitcher />
       <AppNav id="sidebar" />

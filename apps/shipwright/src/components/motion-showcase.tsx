@@ -17,7 +17,11 @@ const RANGES: readonly { value: Range; label: string }[] = [
   { value: "30d", label: "30 days" },
 ];
 
-const FILES_SCANNED: Record<Range, number> = { "24h": 1204, "7d": 8391, "30d": 35210 };
+const FILES_SCANNED: Record<Range, number> = {
+  "24h": 1204,
+  "7d": 8391,
+  "30d": 35210,
+};
 
 const STEPS = ["Find", "Prove", "Fix", "Guard"];
 
@@ -30,16 +34,26 @@ export function MotionShowcase() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <SegmentedControl aria-label="Time range" options={RANGES} value={range} onValueChange={setRange} />
+        <SegmentedControl
+          aria-label="Time range"
+          options={RANGES}
+          value={range}
+          onValueChange={setRange}
+        />
         <p className="flex items-baseline gap-2">
-          <AnimatedNumber value={FILES_SCANNED[range]} className="text-h2 font-semibold" />
+          <AnimatedNumber
+            value={FILES_SCANNED[range]}
+            className="text-h2 font-semibold"
+          />
           <span className="text-sm text-muted-foreground">files scanned</span>
         </p>
       </div>
 
       {/* Changing the key remounts the demos, so they play again from the start. */}
       <div key={replay} className="flex flex-col gap-4">
-        <Reveal className={BOX}>Reveal: fades up the first time it scrolls into view.</Reveal>
+        <Reveal className={BOX}>
+          Reveal: fades up the first time it scrolls into view.
+        </Reveal>
         <Stagger className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {STEPS.map((step) => (
             <StaggerItem key={step} className={BOX}>
@@ -50,7 +64,11 @@ export function MotionShowcase() {
       </div>
 
       <div>
-        <Button variant="outline" size="sm" onClick={() => setReplay((count) => count + 1)}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setReplay((count) => count + 1)}
+        >
           <RotateCcwIcon />
           Replay
         </Button>

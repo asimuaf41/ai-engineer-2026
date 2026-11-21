@@ -19,7 +19,11 @@ const EMPTY_MESSAGE: Record<Exclude<Filter, "all">, string> = {
 const CARD_MOTION = {
   initial: { opacity: 0, scale: 0.96 },
   animate: { opacity: 1, scale: 1 },
-  exit: { opacity: 0, scale: 0.96, transition: { duration: duration.fast, ease: ease.in } },
+  exit: {
+    opacity: 0,
+    scale: 0.96,
+    transition: { duration: duration.fast, ease: ease.in },
+  },
 };
 
 export function IssueBoard({ initialIssues }: { initialIssues: Issue[] }) {
@@ -29,10 +33,15 @@ export function IssueBoard({ initialIssues }: { initialIssues: Issue[] }) {
 
   const score = productionScore(issues);
   // Built from current state, so the spoken score always matches the number on screen.
-  const announcement = lastFixedTitle ? `Fixed: ${lastFixedTitle}. Production score is now ${score}.` : "";
+  const announcement = lastFixedTitle
+    ? `Fixed: ${lastFixedTitle}. Production score is now ${score}.`
+    : "";
   const openCount = issues.filter((issue) => issue.status === "open").length;
   const fixedCount = issues.length - openCount;
-  const visible = filter === "all" ? issues : issues.filter((issue) => issue.status === filter);
+  const visible =
+    filter === "all"
+      ? issues
+      : issues.filter((issue) => issue.status === filter);
 
   const options: readonly { value: Filter; label: string; count: number }[] = [
     { value: "open", label: "Open", count: openCount },
@@ -43,7 +52,11 @@ export function IssueBoard({ initialIssues }: { initialIssues: Issue[] }) {
   // Functional update: an exiting card keeps its old props for a moment, so a click on it must
   // build on the latest list, never on the list from the render that created this handler.
   function mergeFix(issue: Issue) {
-    setIssues((current) => current.map((item) => (item.id === issue.id ? { ...item, status: "fixed" as const } : item)));
+    setIssues((current) =>
+      current.map((item) =>
+        item.id === issue.id ? { ...item, status: "fixed" as const } : item,
+      ),
+    );
     setLastFixedTitle(issue.title);
   }
 
@@ -59,7 +72,12 @@ export function IssueBoard({ initialIssues }: { initialIssues: Issue[] }) {
             <span className="text-h2 text-muted-foreground">/100</span>
           </p>
         </div>
-        <SegmentedControl aria-label="Filter issues" options={options} value={filter} onValueChange={setFilter} />
+        <SegmentedControl
+          aria-label="Filter issues"
+          options={options}
+          value={filter}
+          onValueChange={setFilter}
+        />
       </div>
 
       {/* aria-live is for screen readers: the card disappears, so this says what changed. */}
