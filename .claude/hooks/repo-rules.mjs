@@ -64,6 +64,12 @@ const CREATE_PUBLIC_TABLE = /\bcreate\s+table\s+(?:if\s+not\s+exists\s+)?public\
 const CREATE_FUNCTION = /\bcreate\s+(?:or\s+replace\s+)?function\s+("?[\w]+"?\.)?("?\w+"?)\s*\(/gi;
 const SECURITY_DEFINER = /\bsecurity\s+definer\b/i;
 const SET_SEARCH_PATH = /\bset\s+search_path\b/i;
+// "revoke all|execute on all functions in schema X from ..." or "revoke ... on function X.f(args) from ...". Captures the target and the grantee list.
+const REVOKE_FUNCTIONS =
+  /\brevoke\s+(?:all|execute)(?:\s+privileges)?\s+on\s+(?:all\s+functions\s+in\s+schema\s+("?\w+"?)|function\s+("?\w+"?\.\s*"?\w+"?)\s*\([^)]*\))\s+from\s+([^;]+);/gi;
+const MUST_REVOKE_FROM = ["public", "anon", "authenticated"];
+// Schemas where a security-definer function is allowed. "private" is not exposed by the API. "server" is, so it also needs the revokes.
+const DEFINER_SCHEMAS = new Set(["private", "server"]);
 const GRANT_TO_ANON = /\bgrant\b[^;]*\bto\b[^;]*\banon\b/i;
 const SUPABASE_HOSTED_FLAG = /\bsupabase\b[^&|;]*--(?:remote|yes)\b/;
 const NON_PUBLIC_ENV =/\bprocess\.env\.(?!EXPO_PUBLIC_)\w+/;
@@ -253,8 +259,8 @@ if (MOBILE_SRC_FILE.test(relative)) {
   }
 }
 
-// Rule 13: Database. Public tables need RLS, definer helpers stay private, applied migrations never change,
-// and hosted changes (--remote / --yes) are run by hand, never from a package.json script (CLI v3).
+// Rule 13: Database. Public tables need RLS, definer functions live in private (or in server, with revokes), applied migrations
+// never change, and hosted changes (--remote / --yes) are run by hand, never from a package.json script (CLI v3).
 if (MIGRATION_FILE.test(relative)) {
   const sql = text.replace(SQL_COMMENT, " ");
   for (const [, , table] of sql.matchAll(CREATE_PUBLIC_TABLE)) {
@@ -266,13 +272,31 @@ if (MIGRATION_FILE.test(relative)) {
       problems.push(`Every public table needs RLS in the same migration (Day 13). Missing for public.${table}.`);
     }
   }
+  // Who is revoked from EXECUTE, per target ("schema:server" or "fn:server.read_x"). Several revoke statements add up.
+  const revoked = new Map();
+  for (const [, schemaTarget, functionTarget, grantees] of sql.matchAll(REVOKE_FUNCTIONS)) {
+    const target = schemaTarget
+      ? `schema:${schemaTarget.replace(/"/g, "").toLowerCase()}`
+      : `fn:${functionTarget.replace(/["\s]/g, "").toLowerCase()}`;
+    const set = revoked.get(target) ?? new Set();
+    for (const grantee of grantees.split(",")) set.add(grantee.trim().toLowerCase());
+    revoked.set(target, set);
+  }
+  const revokedFromAll = (target) => MUST_REVOKE_FROM.every((role) => revoked.get(target)?.has(role));
+
   // Each function runs from its "create" to the next "create" (or the end of the file).
   const starts = [...sql.matchAll(CREATE_FUNCTION)];
   starts.forEach((start, index) => {
     const body = sql.slice(start.index, starts[index + 1]?.index ?? sql.length);
+    if (!SECURITY_DEFINER.test(body)) return;
     const schema = (start[1] ?? "").replace(/[".]/g, "").toLowerCase();
-    if (SECURITY_DEFINER.test(body) && (schema !== "private" || !SET_SEARCH_PATH.test(body))) {
-      problems.push(`Security-definer helpers live in the private schema with set search_path = ''. Check ${start[2]}().`);
+    const name = start[2].replace(/"/g, "").toLowerCase();
+    if (!DEFINER_SCHEMAS.has(schema)) {
+      problems.push(`Security-definer functions live in the private schema (or in server, with revokes) and set search_path = ''. Check ${name}().`);
+    } else if (!SET_SEARCH_PATH.test(body)) {
+      problems.push(`Security-definer functions need set search_path = ''. Check ${schema}.${name}().`);
+    } else if (schema === "server" && !revokedFromAll("schema:server") && !revokedFromAll(`fn:server.${name}`)) {
+      problems.push(`server.${name}() is security definer, so this file must revoke execute on it from public, anon, authenticated (the API can reach the server schema).`);
     }
   });
   if (GRANT_TO_ANON.test(sql)) {

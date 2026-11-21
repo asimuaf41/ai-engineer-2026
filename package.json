@@ -16,7 +16,8 @@
     "db:status": "supabase status",
     "db:reset": "supabase db reset",
     "db:test": "supabase test db",
-    "db:types": "supabase gen types typescript"
+    "db:types": "node scripts/gen-db-types.mjs",
+    "flow:time": "node scripts/flow-timer.mjs"
   },
   "devDependencies": {
     "supabase": "3.1.0",

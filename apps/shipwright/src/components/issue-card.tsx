@@ -31,7 +31,13 @@ const SEVERITY_LABEL: Record<Severity, string> = {
 };
 
 // Severity is shown by color AND word (the strip + the badge text), never color alone.
-export function IssueCard({ issue, onFix }: { issue: Issue; onFix?: () => void }) {
+export function IssueCard({
+  issue,
+  onFix,
+}: {
+  issue: Issue;
+  onFix?: () => void;
+}) {
   const fixed = issue.status === "fixed";
 
   return (
@@ -43,12 +49,16 @@ export function IssueCard({ issue, onFix }: { issue: Issue; onFix?: () => void }
     >
       <CardHeader>
         <CardTitle className="text-h3 font-semibold">{issue.title}</CardTitle>
-        <CardDescription className="font-mono text-xs">{issue.file}</CardDescription>
+        <CardDescription className="font-mono text-xs">
+          {issue.file}
+        </CardDescription>
         <CardAction>
           {fixed ? (
             <Badge variant="success">Fixed</Badge>
           ) : (
-            <Badge variant={issue.severity}>{SEVERITY_LABEL[issue.severity]}</Badge>
+            <Badge variant={issue.severity}>
+              {SEVERITY_LABEL[issue.severity]}
+            </Badge>
           )}
         </CardAction>
       </CardHeader>

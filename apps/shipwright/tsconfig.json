@@ -2,6 +2,8 @@
   "extends": "@repo/typescript-config/nextjs.json",
   "compilerOptions": {
     "types": ["node"],
+    // Lets a test import "./safe-next.ts" with the extension, which Node's test runner needs. Safe here: nothing is emitted (noEmit).
+    "allowImportingTsExtensions": true,
     "paths": {
       "@/*": ["./src/*"]
     }

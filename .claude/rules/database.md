@@ -10,7 +10,7 @@ Why: many founders share one database, and their code findings are private. See 
 
 1. **Every `public` table turns on RLS in the same migration** (`alter table public.x enable row level security`). A table without RLS is open to anyone with the public key.
 2. **Tenant tables carry `org_id`.** A policy asks "is this row's `org_id` one of mine?" through the membership helper `private.user_org_ids()`. It does not walk the tables on every row.
-3. **Security-definer helpers live in the `private` schema** and say `set search_path = ''`. Inside them, write every name with its schema (`public.org_members`). The `private` schema is not exposed by the API.
+3. **Security-definer functions live in `private` or `server`** and say `set search_path = ''`. Inside them, write every name with its schema (`public.org_members`). `private` is not exposed by the API. `server` is (the app calls it with the admin client), so the same migration must `revoke` execute on those functions from `public`, `anon` and `authenticated`; the hook checks this.
 4. **`anon` gets nothing by default.** Never `grant ... to anon` by habit. If a public page really needs it, add a policy and a grant on purpose and explain it in the PR.
 5. **Never edit an applied migration.** Create a new one: `pnpm exec supabase migration new <name>`. Only a file that is not on `main` yet may change.
 6. **The server writes, clients read.** Browsers and the app only `select`. Writes go through server code with the service role, which never reaches the browser. Where a client may change something, grant **per column**, not per table.
