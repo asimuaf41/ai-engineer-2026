@@ -15,3 +15,7 @@ export async function demoChooseProject(): Promise<void> {
 export async function demoDisconnect(): Promise<void> {
   redirect("/design/connect?state=not-connected");
 }
+
+export async function demoStartIndex(): Promise<void> {
+  redirect("/design/connect?state=ready");
+}

@@ -2,3 +2,7 @@
 reports/
 test-results/
 playwright-report/
+
+# Code search eval runs (evals/code-search.json itself is committed). Keep only the baseline to compare against.
+evals/results/*
+!evals/results/code-search-baseline.json

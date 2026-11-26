@@ -52,7 +52,9 @@ export async function GET(request: NextRequest) {
   } catch (failure) {
     // The status only, never the body. (back() works by throwing, so it is never called INSIDE a try block.)
     const status = failure instanceof SupabaseOAuthError || failure instanceof MgmtApiError ? failure.status : undefined;
-    console.warn(`[supabase] callback failed: status=${status ?? "unknown"}`);
+    // Plus the error's name and the first 80 characters of its message (these errors never carry a body, token or URL).
+    const thrown = failure instanceof Error ? ` error_name=${failure.name} error_message=${JSON.stringify(failure.message.slice(0, 80))}` : "";
+    console.warn(`[supabase] callback failed: status=${status ?? "unknown"}${thrown}`);
     const limited = (failure instanceof SupabaseOAuthError && failure.kind === "rate_limited") || (failure instanceof MgmtApiError && failure.status === 429);
     back(limited ? "rate_limited" : "supabase_failed", slug);
   }

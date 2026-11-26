@@ -8,6 +8,12 @@ test("a private workspace page sends a signed-out visitor to /login", async ({ p
   await expect(page.getByText("Sign in to Shipwright")).toBeVisible();
 });
 
+test("the Code page of an app sends a signed-out visitor to /login (a real signed-in a11y scan is a TODO: see the /design/code states)", async ({ page }) => {
+  await page.goto("/o/acme-labs-x7k2/apps/00000000-0000-4000-8000-000000000001/code");
+  await expect(page).toHaveURL(/\/login(\?|$)/);
+  await expect(page.getByText("Sign in to Shipwright")).toBeVisible();
+});
+
 test("/onboarding sends a signed-out visitor to /login", async ({ page }) => {
   await page.goto("/onboarding");
   await expect(page).toHaveURL(/\/login(\?|$)/);

@@ -22,6 +22,14 @@ export const env = createEnv({
     // everyone gets the scripted demo answer instead of a real one.
     DEMO_DAILY_LIMIT: z.coerce.number().int().positive().default(5),
     DEMO_GLOBAL_DAILY_LIMIT: z.coerce.number().int().positive().default(300),
+    // Voyage AI key for code embeddings (src/lib/ai/embeddings.ts). Optional so builds pass without it;
+    // call isEmbeddingConfigured() before embedding. Server only.
+    VOYAGE_API_KEY: z.string().min(1).optional(),
+    // How fast we may talk to Voyage. The defaults suit an account without a payment method; raise them after adding one.
+    EMBEDDING_MAX_TOKENS_PER_MINUTE: z.coerce.number().int().positive().default(8000),
+    EMBEDDING_MAX_REQUESTS_PER_MINUTE: z.coerce.number().int().positive().default(3),
+    // Development only: index just the first N chunks (0 = all). Ignored in production. See code-index/index-plan.ts.
+    DEV_INDEX_MAX_CHUNKS: z.coerce.number().int().min(0).default(0),
     // Set by Vercel (the production domain without "https://"). lib/site.ts uses it when NEXT_PUBLIC_APP_URL is unset.
     VERCEL_PROJECT_PRODUCTION_URL: z.string().optional(),
   },
@@ -38,9 +46,16 @@ export const env = createEnv({
     QUOTA_SALT: process.env.QUOTA_SALT,
     DEMO_DAILY_LIMIT: process.env.DEMO_DAILY_LIMIT,
     DEMO_GLOBAL_DAILY_LIMIT: process.env.DEMO_GLOBAL_DAILY_LIMIT,
+    VOYAGE_API_KEY: process.env.VOYAGE_API_KEY,
+    EMBEDDING_MAX_TOKENS_PER_MINUTE: process.env.EMBEDDING_MAX_TOKENS_PER_MINUTE,
+    EMBEDDING_MAX_REQUESTS_PER_MINUTE: process.env.EMBEDDING_MAX_REQUESTS_PER_MINUTE,
+    DEV_INDEX_MAX_CHUNKS: process.env.DEV_INDEX_MAX_CHUNKS,
     VERCEL_PROJECT_PRODUCTION_URL: process.env.VERCEL_PROJECT_PRODUCTION_URL,
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   },
   emptyStringAsUndefined: true,
   skipValidation: !!process.env.SKIP_ENV_VALIDATION,
 });
+
+// True when a Voyage key is set. Server code only (it reads a server variable).
+export const isEmbeddingConfigured = (): boolean => Boolean(env.VOYAGE_API_KEY);

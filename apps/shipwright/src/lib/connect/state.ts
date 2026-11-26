@@ -25,7 +25,7 @@ export type GitHubStep =
   | { status: "pending_approval" }
   | { status: "no_repos"; installUrl: string }
   | { status: "pick_repo"; repos: RepoOption[]; installUrl: string }
-  | { status: "connected"; repo: { fullName: string; defaultBranch: string }; installUrl: string }
+  | { status: "connected"; repo: { appId: string; fullName: string; defaultBranch: string }; installUrl: string }
   | { status: "needs_reconnect" }
   | { status: "error"; code: ConnectErrorCode };
 

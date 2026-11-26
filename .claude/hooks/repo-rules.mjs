@@ -328,6 +328,47 @@ if (path.posix.basename(relative) === "package.json") {
   }
 }
 
+// Rule 15: Code index (Day 15). We read a customer's code, so it is only ever data: never run it, never write it to disk,
+// never log it, and the embedding model id lives in one place (EMBEDDING). Comments are ignored; only real code is checked.
+const CODE_INDEX_FILE = /^apps\/shipwright\/src\/lib\/code-index\/.+\.tsx?$/;
+const EMBEDDING_MODEL_HOMES = new Set(["apps/shipwright/src/lib/ai/embeddings.ts", "apps/shipwright/src/lib/ai/embedding-config.ts"]);
+const RUNS_OR_WRITES_CODE = [
+  /\b(?:from|import|require)\s*\(?\s*["'](?:node:)?child_process["']/,
+  /["'](?:execa|simple-git|isomorphic-git)["']/,
+  // A call named exec( / spawn( on its own: "re.exec(text)" (a regex) has a "." before it and is fine.
+  /(?<![.\w])(?:exec|execSync|execFile|execFileSync|spawn|spawnSync)\(/,
+  /(?<![.\w])eval\(/,
+  /\bnew\s+Function\(/,
+  /\bfs\.write/,
+  /writeFile/,
+  /createWriteStream/,
+];
+const LOG_CALL_START = /\b(?:console|logger)\.(?:log|info|warn|error|debug)\s*\(/g;
+const CODE_WORDS = /\b(?:content|text|embedText|snippet)\b/;
+const EMBEDDING_MODEL_ID = /["'`](?:voyage-|text-embedding-)/;
+
+if (CODE_INDEX_FILE.test(relative)) {
+  const code = text.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, "");
+  if (RUNS_OR_WRITES_CODE.some((pattern) => pattern.test(code))) {
+    problems.push("We never run or write a customer's code (Day 15). Read it in memory as text.");
+  }
+  // The whole log call, up to its closing parenthesis (so a call over several lines is checked too).
+  const logsCode = [...code.matchAll(LOG_CALL_START)].some((match) => {
+    let depth = 1;
+    let end = match.index + match[0].length;
+    while (end < code.length && depth > 0) {
+      if (code[end] === "(") depth++;
+      else if (code[end] === ")") depth--;
+      end++;
+    }
+    return CODE_WORDS.test(code.slice(match.index, end));
+  });
+  if (logsCode) problems.push("Never log customer code. Log ids, counts and timings.");
+  if (!EMBEDDING_MODEL_HOMES.has(relative) && EMBEDDING_MODEL_ID.test(code)) {
+    problems.push("One place for the embedding model (EMBEDDING).");
+  }
+}
+
 if (SHARED_FILE.test(relative)) {
   const sharedDir = path.posix.dirname(relative);
   const staysInside = (spec) =>

@@ -17,6 +17,8 @@ import { listInstallationRepos, type InstallationRepo } from "@/lib/github/app";
 import { describeForLog, explainGitHubError } from "@/lib/github/errors";
 import { ADMIN_ROLES, requireOrg } from "@/lib/orgs";
 import { SLUG_PATTERN } from "@/lib/slug";
+import { STALE_AFTER_MS } from "@/lib/code-index/index-plan";
+import { startIndex } from "../apps/[appId]/actions";
 import { createClient } from "@/lib/supabase/server";
 import { listSupabaseProjects } from "@/lib/supabase-mgmt/client";
 import { MgmtApiError, NeedsReconnectError } from "@/lib/supabase-mgmt/errors";
@@ -141,17 +143,57 @@ export async function disconnectAction(formData: FormData): Promise<void> {
   const { kind } = parsed.data;
 
   const connection = await findConnection(db, org.id, kind === "github" ? "github_app" : "supabase_oauth");
+  let removedApps = 0;
+  if (connection && kind === "github") {
+    // Not while an index run is going: deleting its app would fail the run halfway, and its Voyage cost could not be logged.
+    // (A run older than the stale limit is a dead one and doesn't block.)
+    const since = new Date(Date.now() - STALE_AFTER_MS).toISOString();
+    const running = await db.from("code_indexes").select("id").eq("org_id", org.id).in("status", ["queued", "running"]).gte("created_at", since).limit(1);
+    if (running.error) redirect(`${page}?error=unknown`);
+    if (running.data.length > 0) redirect(`${page}?error=already_indexing`);
+
+    // Every app of this workspace came from this GitHub installation, so they go with it: the database deletes each app's
+    // code index (map, chunks, vectors) in the same step. This is done first, so a failed delete leaves the connection in place and
+    // the person can simply try again. If the revoke below fails afterwards, trying again also works (the delete then finds nothing).
+    const removed = await db.from("apps").delete().eq("org_id", org.id).select("id");
+    if (removed.error) {
+      console.warn(`[connect] could not remove the apps on disconnect: code=${removed.error.code}`);
+      redirect(`${page}?error=unknown`);
+    }
+    removedApps = removed.data?.length ?? 0;
+  }
   if (connection) {
-    // Deletes the token from Vault (Supabase) and removes the link.
-    await revokeConnection(org.id, connection.id);
-    if (kind === "supabase") {
+    // Deletes the token from Vault (Supabase) and removes the link. (back() and redirect() work by throwing, so they are never
+    // called inside a try block: the outcome is kept and the redirect comes after.)
+    let revoked = true;
+    try {
+      await revokeConnection(org.id, connection.id);
+    } catch {
+      console.warn(`[connect] could not revoke the ${kind} connection`);
+      revoked = false;
+    }
+    if (revoked && kind === "supabase") {
       // The app no longer points at a project we can't reach.
       const gh = await findConnection(db, org.id, "github_app");
       if (gh?.app_id) await db.from("apps").update({ supabase_project_ref: null }).eq("id", gh.app_id).eq("org_id", org.id);
     }
-    await recordAudit({ orgId: org.id, actorId: userId, action: `connection.${kind}.revoked`, metadata: { connection_id: connection.id } });
+    await recordAudit({
+      orgId: org.id,
+      actorId: userId,
+      action: `connection.${kind}.${revoked ? "revoked" : "revoke_failed"}`,
+      metadata: { connection_id: connection.id, ...(kind === "github" ? { apps_removed: removedApps } : {}) },
+    });
+    if (!revoked) redirect(`${page}?error=unknown`);
   }
 
   revalidatePath(page);
+  revalidatePath(`/o/${org.slug}`, "layout"); // the "Code" link in the workspace bar
   redirect(page);
+}
+
+// ---------------------------------------------------------------------------------------------------------------------
+
+// The "Index my code" button. A thin wrapper: the real checks and work are in apps/[appId]/actions.ts.
+export async function startIndexAction(formData: FormData): Promise<void> {
+  await startIndex(text(formData, "slug"), text(formData, "appId"));
 }

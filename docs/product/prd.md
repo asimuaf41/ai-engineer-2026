@@ -64,6 +64,7 @@ non-engineer can use.
 | No training on customer code | Provider settings and contracts say so; we say it on the site |
 | Delete on request | One action removes the org's code, index, findings and tokens |
 | Evidence is redacted | Keys, tokens and personal data are masked before they are saved or shown |
+| What we store from your code | A map of your code (file names, kinds, symbols, env var names) and the code split into chunks, with secrets masked before anything is saved. Only the last 2 versions are kept, and all of it is deleted when you disconnect. We never run your code: we read it as text. The chunks are sent to Voyage, our embeddings provider, to make them searchable |
 | Ownership first | Live checks run only after the user proves they own the app |
 
 ## Success metrics

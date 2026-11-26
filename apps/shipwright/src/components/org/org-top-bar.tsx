@@ -4,13 +4,14 @@ import Link from "next/link";
 import { AuthMenu } from "@/components/auth/auth-menu";
 import { LogoMark } from "@/components/logo";
 import type { MyOrg, Org, OrgRole } from "@/lib/orgs";
+import { CodeNav, type NavApp } from "./code-nav";
 import { OrgSwitcher } from "./org-switcher";
 
 const ROLE_LABEL: Record<OrgRole, string> = { owner: "Owner", admin: "Admin", member: "Member" };
 
 // The bar across the top of every workspace page: which workspace, what I am in it, how to switch, and my account.
 // On a phone the name shrinks with "…" and everything stays on one line.
-export function OrgTopBar({ org, role, orgs }: { org: Org; role: OrgRole; orgs: MyOrg[] }) {
+export function OrgTopBar({ org, role, orgs, apps = [] }: { org: Org; role: OrgRole; orgs: MyOrg[]; apps?: NavApp[] }) {
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-md">
       <div className="container-page flex h-14 items-center gap-2">
@@ -27,6 +28,7 @@ export function OrgTopBar({ org, role, orgs }: { org: Org; role: OrgRole; orgs: 
           </Badge>
         </div>
         <div className="flex shrink-0 items-center gap-1">
+          <CodeNav slug={org.slug} apps={apps} />
           <ThemeToggle />
           <AuthMenu />
         </div>

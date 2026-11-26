@@ -30,7 +30,7 @@ async function loadGitHub(gh: ConnectionRow | null, apps: AppRow[], pending: boo
   // The page where the person manages this installation on GitHub (to add repositories or uninstall).
   const installUrl = `https://github.com/settings/installations/${encodeURIComponent(gh.external_id)}`;
   const app = gh.app_id ? apps.find((candidate) => candidate.id === gh.app_id) : undefined;
-  if (app) return { status: "connected", repo: { fullName: app.repo_full_name, defaultBranch: app.default_branch }, installUrl };
+  if (app) return { status: "connected", repo: { appId: app.id, fullName: app.repo_full_name, defaultBranch: app.default_branch }, installUrl };
 
   const installationId = Number(gh.external_id);
   if (!Number.isSafeInteger(installationId)) return { status: "error", code: "unknown" };
@@ -39,7 +39,7 @@ async function loadGitHub(gh: ConnectionRow | null, apps: AppRow[], pending: boo
     repos = await listInstallationRepos(installationId);
   } catch (error) {
     const info = explainGitHubError(error);
-    console.warn(`[connect] could not list repositories: ${describeForLog(info, { installation: installationId })}`);
+    console.warn(`[connect] could not list repositories: ${describeForLog(info, { installation: installationId }, error)}`);
     if (info.kind === "auth" || info.kind === "not_found") return { status: "needs_reconnect" };
     return { status: "error", code: info.kind === "rate_limit" ? "rate_limited" : "unknown" };
   }
