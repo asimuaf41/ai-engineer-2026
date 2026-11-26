@@ -6,4 +6,6 @@ export type ConnectActions = {
   chooseRepo: FormAction;
   chooseProject: FormAction;
   disconnect: FormAction;
+  // "Index my code": starts reading the repo and building the search index.
+  startIndex: FormAction;
 };

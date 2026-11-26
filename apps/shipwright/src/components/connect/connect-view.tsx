@@ -73,7 +73,7 @@ export function ConnectView({
         </StepShell>
 
         <StepShell number={3} title="Ready for your first scan" state={state.ready} summary={<p>Finish the steps above first.</p>}>
-          {githubDone ? <ReadyBody repo={githubDone.repo} project={supabaseDone?.project ?? null} /> : null}
+          {githubDone ? <ReadyBody slug={slug} repo={githubDone.repo} project={supabaseDone?.project ?? null} canManage={state.canManage} startIndex={actions.startIndex} /> : null}
         </StepShell>
       </ol>
     </div>

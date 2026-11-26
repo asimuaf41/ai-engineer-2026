@@ -61,7 +61,7 @@ test("the disconnect dialog says exactly what happens, closes with Escape, and g
 
   const dialog = page.getByRole("dialog", { name: "Disconnect GitHub?" });
   await expect(dialog).toBeVisible();
-  await expect(dialog).toContainText("We remove the link between Shipwright and your GitHub installation.");
+  await expect(dialog).toContainText("We remove the link between Shipwright and your GitHub installation, and delete the code index");
   await expect(dialog).toContainText("We didn't store a GitHub token");
   await expect(dialog).toContainText("also uninstall the Shipwright app on GitHub");
   await expect(dialog.getByRole("link", { name: /Open your GitHub installations/ })).toHaveAttribute("href", "https://github.com/settings/installations");

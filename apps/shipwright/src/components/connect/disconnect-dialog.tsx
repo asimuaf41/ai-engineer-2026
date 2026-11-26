@@ -13,8 +13,8 @@ const COPY = {
   github: {
     trigger: "Disconnect GitHub",
     title: "Disconnect GitHub?",
-    what: "We remove the link between Shipwright and your GitHub installation. We didn't store a GitHub token, so there is nothing else to delete.",
-    more: "To remove Shipwright's access fully, also uninstall the Shipwright app on GitHub.",
+    what: "We remove the link between Shipwright and your GitHub installation, and delete the code index of this workspace's repository (the map of your code and the pieces we made searchable). We didn't store a GitHub token, so there is nothing else to delete.",
+    more: "Shipwright stays installed on GitHub until you uninstall it there. If you want to connect again from scratch, uninstall it first.",
     linkLabel: "Open your GitHub installations",
     href: "https://github.com/settings/installations",
   },

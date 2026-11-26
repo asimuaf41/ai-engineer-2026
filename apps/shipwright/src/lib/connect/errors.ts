@@ -15,6 +15,8 @@ export type ConnectErrorCode =
   | "access_denied"
   | "needs_reconnect"
   | "rate_limited"
+  | "already_indexing"
+  | "indexing_unavailable"
   | "unknown";
 
 export type ConnectError = {
@@ -80,6 +82,16 @@ const ERRORS: Record<ConnectErrorCode, Omit<ConnectError, "code">> = {
     title: "Too many requests right now",
     body: "GitHub or Supabase is asking us to slow down. Wait a minute, then try again.",
     retry: "current",
+  },
+  already_indexing: {
+    title: "We're already reading your code",
+    body: "A scan of this repository is running right now. It usually takes a few minutes. Nothing was changed, and you don't need to start it again.",
+    retry: "none",
+  },
+  indexing_unavailable: {
+    title: "Indexing isn't switched on here yet",
+    body: "We're still setting this up. Please check back soon. Nothing was changed.",
+    retry: "none",
   },
   unknown: {
     title: "Something went wrong",

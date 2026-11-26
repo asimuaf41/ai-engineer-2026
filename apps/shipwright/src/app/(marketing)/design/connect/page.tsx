@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ConnectSkeleton } from "@/components/connect/connect-skeleton";
 import { ConnectView } from "@/components/connect/connect-view";
 import { FIXTURE_NAMES, FIXTURES, isFixtureName } from "@/lib/connect/fixtures";
-import { demoChooseProject, demoChooseRepo, demoDisconnect } from "./actions";
+import { demoChooseProject, demoChooseRepo, demoDisconnect, demoStartIndex } from "./actions";
 
 // Internal: a preview of the connect page with fake data, so the design can be checked without a database.
 export const metadata: Metadata = { title: "Connect flow preview", robots: { index: false, follow: false } };
@@ -47,7 +47,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<Par
       {loading ? (
         <ConnectSkeleton />
       ) : (
-        <ConnectView slug="acme-labs-x7k2" input={FIXTURES[fixture]} errorValue={error} actions={{ chooseRepo: demoChooseRepo, chooseProject: demoChooseProject, disconnect: demoDisconnect }} />
+        <ConnectView slug="acme-labs-x7k2" input={FIXTURES[fixture]} errorValue={error} actions={{ chooseRepo: demoChooseRepo, chooseProject: demoChooseProject, disconnect: demoDisconnect, startIndex: demoStartIndex }} />
       )}
     </div>
   );

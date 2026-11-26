@@ -25,7 +25,7 @@ const PROJECTS: ProjectOption[] = [
   { ref: "cdefghijklmnopqrstuv", name: "Marketing", region: "us-east-1", status: "COMING_UP" },
 ];
 
-const connectedRepo = { fullName: "acme-labs/shop-frontend", defaultBranch: "main" } as const;
+const connectedRepo = { appId: "00000000-0000-4000-8000-000000000001", fullName: "acme-labs/shop-frontend", defaultBranch: "main" } as const;
 const connectedProject = { ref: "abcdefghijklmnopqrst", name: "Shop (production)", region: "eu-west-1" } as const;
 
 const base: ConnectInput = { role: "owner", github: { status: "not_connected" }, supabase: { status: "not_connected" }, skipSupabase: false };

@@ -7,7 +7,7 @@ import { connectHrefs, retryHrefFor } from "./links.ts";
 import { filterBy, MAX_VISIBLE, newestFirst } from "./search.ts";
 import { deriveConnectState, type ConnectInput, type GitHubStep, type SupabaseStep } from "./state.ts";
 
-const connectedRepo: GitHubStep = { status: "connected", repo: { fullName: "acme/shop", defaultBranch: "main" }, installUrl: "https://github.com/settings/installations" };
+const connectedRepo: GitHubStep = { status: "connected", repo: { appId: "00000000-0000-4000-8000-000000000001", fullName: "acme/shop", defaultBranch: "main" }, installUrl: "https://github.com/settings/installations" };
 const connectedProject: SupabaseStep = { status: "connected", project: { ref: "abcdefghijklmnopqrst", name: "Shop", region: "eu-west-1" } };
 
 const input = (overrides: Partial<ConnectInput> = {}): ConnectInput => ({
@@ -71,7 +71,7 @@ test("only owners and admins can manage; members see everything read-only", () =
 
 // ---------- the ?error= messages ----------
 
-const ALL_CODES: ConnectErrorCode[] = ["github_state", "github_not_yours", "github_failed", "github_not_configured", "supabase_state", "supabase_failed", "supabase_no_org", "supabase_not_configured", "access_denied", "needs_reconnect", "rate_limited", "unknown"];
+const ALL_CODES: ConnectErrorCode[] = ["github_state", "github_not_yours", "github_failed", "github_not_configured", "supabase_state", "supabase_failed", "supabase_no_org", "supabase_not_configured", "access_denied", "needs_reconnect", "rate_limited", "already_indexing", "indexing_unavailable", "unknown"];
 
 test("no error in the address means no alert", () => {
   assert.equal(connectErrorFor(undefined), null);

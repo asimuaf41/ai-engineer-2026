@@ -22,6 +22,26 @@ const PAGES = [
   "/design/connect?state=loading",
   "/design/connect?state=not-connected&error=github_not_yours",
   "/design/connect?state=step2&error=access_denied",
+  // The Code page (status, code map, search), in each of its states (fake data, so no sign-in is needed).
+  ...[
+    "ready",
+    "kind-open",
+    "results",
+    "keyword-only",
+    "no-matches",
+    "limited",
+    "redactions",
+    "running",
+    "running-reindex",
+    "failed",
+    "stopped",
+    "empty",
+    "no-files",
+    "no-env",
+    "member",
+    "member-empty",
+    "loading",
+  ].map((state) => `/design/code?state=${state}`),
 ];
 const TAGS = ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"];
 

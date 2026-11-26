@@ -1,14 +1,23 @@
 import { Button } from "@repo/ui/components/button";
 import Link from "next/link";
+import { IndexButton } from "./index-button";
+import type { FormAction } from "./types";
 
-// Step 3: a summary of what was chosen, and the first scan. There are no scans yet, so the button is OFF and says why.
-// (No fake scan: the real one arrives in a later update.)
+// Step 3: a summary of what was chosen, and the button that reads the code and builds the search index.
+// Only owners and admins can start it (the server checks that again). Reading the code is the first half of a scan;
+// the scan itself (finding problems) arrives in a later update, and the note says so.
 export function ReadyBody({
+  slug,
   repo,
   project,
+  canManage,
+  startIndex,
 }: {
-  repo: { fullName: string; defaultBranch: string };
+  slug: string;
+  repo: { appId: string; fullName: string; defaultBranch: string };
   project: { name: string; region: string } | null;
+  canManage: boolean;
+  startIndex: FormAction;
 }) {
   return (
     <>
@@ -30,15 +39,27 @@ export function ReadyBody({
       </dl>
       <div className="flex flex-col gap-2">
         <div className="flex flex-wrap items-center gap-2">
-          <Button type="button" size="lg" className="h-11" disabled aria-describedby="first-scan-note">
-            Run first scan
+          {canManage ? (
+            <form action={startIndex}>
+              <input type="hidden" name="slug" value={slug} />
+              <input type="hidden" name="appId" value={repo.appId} />
+              <IndexButton describedBy="first-scan-note" />
+            </form>
+          ) : (
+            <Button type="button" size="lg" className="h-11" disabled aria-describedby="first-scan-note">
+              Index my code
+            </Button>
+          )}
+          <Button asChild variant="outline" size="lg" className="h-11">
+            <Link href={`/o/${slug}/apps/${repo.appId}/code`}>View code index</Link>
           </Button>
           <Button asChild variant="outline" size="lg" className="h-11">
             <Link href="/demo">See a sample report</Link>
           </Button>
         </div>
         <p id="first-scan-note" className="text-sm text-muted-foreground">
-          Scans arrive in the next update.
+          {canManage ? "We read your code on our servers and keep a searchable copy. " : "Ask an admin to start this. "}
+          Your first scan arrives in the next update.
         </p>
       </div>
     </>

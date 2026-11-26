@@ -43,10 +43,19 @@ export function explainGitHubError(error: unknown): GitHubErrorInfo {
   return { kind, status, requestId, message: MESSAGES[kind] };
 }
 
-// For console.warn: status, kind and request id only.
-export function describeForLog(info: GitHubErrorInfo, ids: Record<string, string | number | undefined> = {}): string {
+// The error's name and the first 80 characters of its message, for the log. Never the stack. Any long token-like run is blanked.
+export function describeThrown(error: unknown): string {
+  const name = error instanceof Error ? error.name : typeof error;
+  const raw = error instanceof Error ? error.message : "";
+  const message = raw.replace(/[A-Za-z0-9+/=_-]{40,}/g, "[hidden]").slice(0, 80);
+  return `error_name=${name} error_message=${JSON.stringify(message)}`;
+}
+
+// For console.warn: status, kind and request id, plus the error's name and the start of its message.
+export function describeForLog(info: GitHubErrorInfo, ids: Record<string, string | number | undefined> = {}, error?: unknown): string {
   const extra = Object.entries(ids)
     .filter(([, value]) => value !== undefined)
     .map(([key, value]) => `${key}=${value}`);
-  return [`status=${info.status ?? "none"}`, `kind=${info.kind}`, `request_id=${info.requestId ?? "none"}`, ...extra].join(" ");
+  const thrown = error === undefined ? [] : [describeThrown(error)];
+  return [`status=${info.status ?? "none"}`, `kind=${info.kind}`, `request_id=${info.requestId ?? "none"}`, ...extra, ...thrown].join(" ");
 }

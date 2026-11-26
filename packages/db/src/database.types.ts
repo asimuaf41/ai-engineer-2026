@@ -47,6 +47,102 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"code_chunks": {
+                  Row: {
+                    "app_id": string,"content": string,"content_hash": string,"embedding": string | null,"end_line": number,"file_id": string,"fts": unknown,"id": number,"index_id": string,"org_id": string,"path": string,"start_line": number,"symbol": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "app_id": string,"content": string,"content_hash": string,"embedding"?: string | null,"end_line": number,"file_id": string,"fts"?: never,"id"?: never,"index_id": string,"org_id": string,"path": string,"start_line": number,"symbol"?: string | null
+                  }
+                  Update: {
+                    "app_id"?: string,"content"?: string,"content_hash"?: string,"embedding"?: string | null,"end_line"?: number,"file_id"?: string,"fts"?: never,"id"?: never,"index_id"?: string,"org_id"?: string,"path"?: string,"start_line"?: number,"symbol"?: string | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "code_chunks_app_id_fkey"
+      columns: ["app_id"]
+isOneToOne: false
+      referencedRelation: "apps"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "code_chunks_file_id_fkey"
+      columns: ["file_id"]
+isOneToOne: false
+      referencedRelation: "code_files"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "code_chunks_index_id_fkey"
+      columns: ["index_id"]
+isOneToOne: false
+      referencedRelation: "code_indexes"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "code_chunks_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"code_files": {
+                  Row: {
+                    "app_id": string,"env_vars": (string)[],"id": string,"imports": (string)[],"index_id": string,"is_client": boolean,"kind": string,"language": string,"org_id": string,"path": string,"redactions": number,"sha256": string,"size_bytes": number,"symbols": NonNullable<Json>
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "app_id": string,"env_vars"?: (string)[],"id"?: string,"imports"?: (string)[],"index_id": string,"is_client"?: boolean,"kind"?: string,"language": string,"org_id": string,"path": string,"redactions"?: number,"sha256": string,"size_bytes": number,"symbols"?: NonNullable<Json>
+                  }
+                  Update: {
+                    "app_id"?: string,"env_vars"?: (string)[],"id"?: string,"imports"?: (string)[],"index_id"?: string,"is_client"?: boolean,"kind"?: string,"language"?: string,"org_id"?: string,"path"?: string,"redactions"?: number,"sha256"?: string,"size_bytes"?: number,"symbols"?: NonNullable<Json>
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "code_files_app_id_fkey"
+      columns: ["app_id"]
+isOneToOne: false
+      referencedRelation: "apps"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "code_files_index_id_fkey"
+      columns: ["index_id"]
+isOneToOne: false
+      referencedRelation: "code_indexes"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "code_files_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"code_indexes": {
+                  Row: {
+                    "app_id": string,"chunks_count": number,"commit_sha": string,"cost_usd": number,"created_at": string,"dims": number,"embed_tokens": number,"embedding_model": string,"error": string | null,"files_count": number,"finished_at": string | null,"id": string,"org_id": string,"reused_chunks": number,"skipped": NonNullable<Json>,"stack": NonNullable<Json>,"started_at": string | null,"status": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "app_id": string,"chunks_count"?: number,"commit_sha": string,"cost_usd"?: number,"created_at"?: string,"dims": number,"embed_tokens"?: number,"embedding_model": string,"error"?: string | null,"files_count"?: number,"finished_at"?: string | null,"id"?: string,"org_id": string,"reused_chunks"?: number,"skipped"?: NonNullable<Json>,"stack"?: NonNullable<Json>,"started_at"?: string | null,"status"?: string
+                  }
+                  Update: {
+                    "app_id"?: string,"chunks_count"?: number,"commit_sha"?: string,"cost_usd"?: number,"created_at"?: string,"dims"?: number,"embed_tokens"?: number,"embedding_model"?: string,"error"?: string | null,"files_count"?: number,"finished_at"?: string | null,"id"?: string,"org_id"?: string,"reused_chunks"?: number,"skipped"?: NonNullable<Json>,"stack"?: NonNullable<Json>,"started_at"?: string | null,"status"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "code_indexes_app_id_fkey"
+      columns: ["app_id"]
+isOneToOne: false
+      referencedRelation: "apps"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "code_indexes_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"connections": {
                   Row: {
                     "app_id": string | null,"created_at": string,"created_by": string | null,"external_id": string,"id": string,"org_id": string,"provider": string,"status": string,"updated_at": string,"vault_secret_id": string | null
@@ -107,6 +203,32 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"usage_events": {
+                  Row: {
+                    "app_id": string | null,"cost_usd": number,"created_at": string,"id": number,"kind": string,"meta": NonNullable<Json>,"org_id": string,"quantity": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "app_id"?: string | null,"cost_usd"?: number,"created_at"?: string,"id"?: never,"kind": string,"meta"?: NonNullable<Json>,"org_id": string,"quantity": number
+                  }
+                  Update: {
+                    "app_id"?: string | null,"cost_usd"?: number,"created_at"?: string,"id"?: never,"kind"?: string,"meta"?: NonNullable<Json>,"org_id"?: string,"quantity"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "usage_events_app_id_fkey"
+      columns: ["app_id"]
+isOneToOne: false
+      referencedRelation: "apps"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "usage_events_org_id_fkey"
+      columns: ["org_id"]
+isOneToOne: false
+      referencedRelation: "orgs"
+      referencedColumns: ["id"]
+    }
+                  ]
                 }
           }
           Views: {
@@ -129,14 +251,31 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "read_connection_secret":
+            "finish_code_index":
+{ Args: { "p_index_id": string,"p_keep"?: number,"p_org_id": string }; Returns: undefined
+                           },
+"known_chunk_hashes":
+{ Args: { "p_app_id": string,"p_hashes": (string)[],"p_org_id": string }; Returns: string[]
+                           },
+"latest_ready_index":
+{ Args: { "p_app_id": string,"p_org_id": string }; Returns: string
+                           },
+"read_connection_secret":
 { Args: { "p_connection_id": string,"p_org_id": string }; Returns: string
+                           },
+"reuse_embeddings":
+{ Args: { "p_app_id": string,"p_new_index_id": string,"p_org_id": string }; Returns: number
                            },
 "revoke_connection":
 { Args: { "p_connection_id": string,"p_org_id": string }; Returns: boolean
                            },
 "save_connection":
 { Args: { "p_actor_id"?: string,"p_app_id"?: string,"p_external_id": string,"p_org_id": string,"p_provider": string,"p_secret"?: string }; Returns: string
+                           },
+"search_code":
+{ Args: { "p_app_id": string,"p_match_count"?: number,"p_org_id": string,"p_query_embedding"?: string,"p_query_text": string,"p_rrf_k"?: number }; Returns: {
+              "chunk_id": number,"content": string,"end_line": number,"matched_by": string,"path": string,"score": number,"start_line": number,"symbol": string
+            }[]
                            },
 "set_connection_status":
 { Args: { "p_connection_id": string,"p_org_id": string,"p_status": string }; Returns: boolean
